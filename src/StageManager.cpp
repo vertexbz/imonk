@@ -1,0 +1,30 @@
+//
+// Created by Adam Makswiej on 25/11/2023.
+//
+#include "StageManager.hpp"
+
+StageManager::StageManager(Job::Chronic::Hz hz, Display::Display *display, State *state) : Job::Chronic(hz),  _display(display), _state(state) {}
+
+void StageManager::enter(std::unique_ptr<Scene::BaseScene> scene) {
+    _scene = nullptr;
+    _newScene = true;
+    _scene = std::move(scene);
+    _scene->init(this);
+    begin();
+}
+
+void StageManager::run() {
+    if (!_scene) {
+        return;
+    }
+
+    _state->update([this](StateData *state) {
+        _scene->update(state);
+    });
+    if (_newScene) {
+        _newScene = false;
+        _display->fillScreen(_scene->background());
+    }
+    _display->render( _scene.get());
+}
+
