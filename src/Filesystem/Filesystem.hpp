@@ -3,9 +3,11 @@
 #include <FS.h>
 
 namespace Filesystem {
-class Filesystem : private FS {
+class Filesystem : FS {
 public:
     static size_t getFlashSize();
+    using FS::exists;
+    using FS::open;
 
     Filesystem();
     void begin();

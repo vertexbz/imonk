@@ -4,7 +4,7 @@
 
 #include "Util.hpp"
 
-wchar Display::Util::UTF8Decoder::decode(char c) {
+wchar Display::Util::UTF8Decoder::decode(const char c) {
     // 7 bit Unicode Code Point
     if (!(c & 0x80)) {
         _decoderState = 0;

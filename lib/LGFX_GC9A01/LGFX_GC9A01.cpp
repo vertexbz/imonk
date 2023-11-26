@@ -38,7 +38,7 @@ bool LGFX_GC9A01::begin(int16_t pin_sclk, int16_t pin_mosi, int16_t pin_dc, int1
         cfg.offset_y = 0;
         cfg.offset_rotation = 0;
         cfg.dummy_read_pixel = 16;
-        cfg.readable = true;
+        cfg.readable = false;
         cfg.invert = true;
         cfg.rgb_order = false;
         cfg.dlen_16bit = false;
@@ -62,5 +62,5 @@ bool LGFX_GC9A01::begin(int16_t pin_sclk, int16_t pin_mosi, int16_t pin_dc, int1
 
     setPanel(&_panel_instance);
 
-    return lgfx::LGFX_Device::begin();
+    return LGFX_Device::begin();
 }

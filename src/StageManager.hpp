@@ -13,7 +13,7 @@ protected:
 
     std::unique_ptr<Scene::BaseScene> _scene;
 public:
-    StageManager(Job::Chronic::Hz hz, Display::Display *display, State *state);
+    StageManager(Hz hz, Display::Display *display, State *state);
 
     void enter(std::unique_ptr<Scene::BaseScene> scene);
 

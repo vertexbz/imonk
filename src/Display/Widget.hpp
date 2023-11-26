@@ -5,6 +5,8 @@ namespace Display {
 
     class Widget {
     public:
+        virtual ~Widget() = default;
+
         virtual void render(Painter *) = 0;
     };
 }

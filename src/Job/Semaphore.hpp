@@ -2,8 +2,6 @@
 
 #include <pico/sem.h>
 
-#define SOFT_SEM
-
 namespace Job {
     class Semaphore {
     public:

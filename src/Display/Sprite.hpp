@@ -44,6 +44,8 @@ namespace Display {
 
         void fillScreen(Color color) override;
 
+        void clearScreen(Color color) override;
+
 #pragma mark Painter - Pixel
         using Painter::drawPixel;
 
@@ -75,6 +77,9 @@ namespace Display {
         using Painter::drawString;
 
         size_t drawString(const char *string, Unit x, Unit y, Align align, const Font *font) override;
+
+#pragma mark Painter - Images
+        bool drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY, Align2D align) override;
 
 #pragma mark Painter - Render
         using Painter::renderSprite;

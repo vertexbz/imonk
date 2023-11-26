@@ -2,7 +2,7 @@
 // Created by Adam Makswiej on 20/11/2023.
 //
 
-#include "../Filesystem/Filesystem.hpp"
+#include "../Filesystem/FileWrapper.hpp"
 #include "Display.hpp"
 #include "Sprite.hpp"
 #include "Scene.hpp"
@@ -83,9 +83,13 @@ void Display::Display::setColorDepth(ColorDepth depth) {
 }
 
 void Display::Display::fillScreen(Color color) {
+    LGFX_GC9A01::fillScreen(color);
+}
+
+void Display::Display::clearScreen(Color color) {
     LGFX_GC9A01::setBaseColor(color);
     LGFX_GC9A01::setTextColor(_text_style.fore_rgb888, color);
-    LGFX_GC9A01::fillScreen(color);
+    LGFX_GC9A01::clearDisplay(color);
 }
 
 #pragma mark Painter - Pixel
@@ -128,6 +132,12 @@ size_t Display::Display::drawString(const char *string, Unit x, Unit y, Align al
         default:
             return LGFX_GC9A01::drawString(string, x, y, font);
     }
+}
+
+#pragma mark Painter - Images
+bool Display::Display::drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY, Align2D align) {
+    Filesystem::FileWrapper data_wrapper(file);
+    return this->draw_png(&data_wrapper, x, y, maxWidth, maxHeight, offX, offY, scaleX, scaleY, static_cast<datum_t>(align));
 }
 
 #pragma mark Painter - Render

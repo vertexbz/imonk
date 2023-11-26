@@ -6,6 +6,8 @@
 #include "Painter.hpp"
 #include "Sprite.hpp"
 
+#include <Filesystem/FileWrapper.hpp>
+
 Display::Sprite::Sprite(Unit width, Unit height) : LGFX_Sprite() {
     _width = width;
     _height = height;
@@ -56,7 +58,7 @@ void Display::Sprite::setTextColor(Color color) {
 }
 
 void Display::Sprite::setColorDepth(ColorDepth depth) {
-    LGFX_Sprite::setColorDepth((uint8_t)depth);
+    LGFX_Sprite::setColorDepth(static_cast<uint8_t>(depth));
 }
 
 void Display::Sprite::setPaletteColor(uint8_t index, Color color) {
@@ -65,6 +67,12 @@ void Display::Sprite::setPaletteColor(uint8_t index, Color color) {
 
 void Display::Sprite::fillScreen(Color color) {
     LGFX_Sprite::fillScreen(color);
+}
+
+void Display::Sprite::clearScreen(Color color) {
+    LGFX_Sprite::setBaseColor(color);
+    LGFX_Sprite::setTextColor(_text_style.fore_rgb888, color);
+    LGFX_Sprite::clearDisplay(color);
 }
 
 #pragma mark Painter - Pixel
@@ -112,6 +120,12 @@ void Display::Sprite::fillArc(Unit x, Unit y, Unit r0, Unit r1, float angle0, fl
     LGFX_Sprite::fillArc(x, y, r0, r1, angle0, angle1);
 }
 
+
+#pragma mark Painter - Images
+bool Display::Sprite::drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY, Align2D align) {
+    Filesystem::FileWrapper data_wrapper(file);
+    return this->draw_png(&data_wrapper, x, y, maxWidth, maxHeight, offX, offY, scaleX, scaleY, static_cast<datum_t>(align));
+}
 
 #pragma mark Painter - Render
 void Display::Sprite::renderSprite(Sprite *sprite, Unit x, Unit y, Color transp) {

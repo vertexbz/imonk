@@ -1,4 +1,6 @@
 #include "StageManager.hpp"
+#include "Job/Semaphore.hpp"
+#include "Communication/Interface.hpp"
 #include "Filesystem/Filesystem.hpp"
 #include "Display/Display.hpp"
 #include "State.hpp"
@@ -14,17 +16,34 @@ static Filesystem::Filesystem flash;
 static State state;
 static StageManager manager(24, &display, &state);
 
+static Communication::Interface interface;
+
+static Job::Semaphore init_holder(0, 1);
+
 void setup() {
     state.begin();
     flash.begin();
-    //spi.begin();
     display.begin();
 
-    manager.enter(std::make_unique<Scene::Initial>());
+    if (flash.exists("/images/face.png")) {
+        state.update([](StateData *state) {
+            state->counter3 = 50;
+        });
+    }
+
+    static File face = flash.open("/images/face.png", "r");
+    manager.enter(std::make_unique<Scene::Initial>(&face));
+
+    init_holder.release();
 }
 
 void setup1() {
-    delay(1000);
+    init_holder.acquire_blocking();
+
+    interface.begin();
+
+
+    delay(1000); // todo
 }
 
 void loop() {

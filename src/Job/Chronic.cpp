@@ -4,18 +4,17 @@
 
 #include "Chronic.hpp"
 
-Job::Chronic::Chronic(Job::Chronic::ms delay) {
+Job::Chronic::Chronic(const ms delay) {
     _delay = delay;
 }
 
-Job::Chronic::Chronic(Job::Chronic::Hz period) {
-    _delay = (int16_t)1000 / (int16_t)period;
+Job::Chronic::Chronic(const Hz period) {
+    _delay = static_cast<int16_t>(1000) / static_cast<int16_t>(period);
     _delay *= -1;
 }
 
-bool Job::Chronic::static_handler(struct repeating_timer *timer) {
-    auto c = (Chronic *) timer->user_data;
-    return c->handler();
+bool Job::Chronic::static_handler(repeating_timer *timer) {
+    return static_cast<Chronic *>(timer->user_data)->handler();
 }
 
 bool Job::Chronic::handler() {
@@ -28,7 +27,7 @@ bool Job::Chronic::begin() {
         return true;
     }
     _stopped = false;
-    return add_repeating_timer_ms(_delay, Chronic::static_handler, this, &_timer);
+    return add_repeating_timer_ms(_delay, static_handler, this, &_timer);
 }
 
 void Job::Chronic::stop() {

@@ -4,7 +4,7 @@
 #include <functional>
 
 namespace Job {
-    class ChronicFunc : public Chronic {
+    class ChronicFunc final : public Chronic {
     public:
         typedef std::function<void()> Handler;
     protected:

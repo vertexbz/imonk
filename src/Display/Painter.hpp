@@ -1,6 +1,7 @@
 #pragma once
+
 #include "types.hpp"
-#include <StreamString.h>
+#include <FS.h>
 
 namespace Display {
     class Display;
@@ -24,6 +25,7 @@ namespace Display {
         virtual void setPaletteColor(uint8_t index, Color color) = 0;
         virtual void setColorDepth(ColorDepth depth) = 0;
         virtual void fillScreen(Color color) = 0;
+        virtual void clearScreen(Color color) = 0;
 
 #pragma mark Pixel
         inline void drawPixel(Unit x, Unit y, Color color) { setColor(color); drawPixel(x, y); }
@@ -57,6 +59,13 @@ namespace Display {
         inline size_t drawString(const char *string, Unit x, Unit y, Align align) { return drawString(string, x, y, align, defaultFont()); };
         virtual size_t drawString(const char *string, Unit x, Unit y, Align align, const Font* font) = 0;
 
+#pragma mark Images
+        inline bool drawPng(File *file) { return drawPng(file, 0, 0); };
+        inline bool drawPng(File *file, Unit x, Unit y) { return drawPng(file, x, y, 0, 0); };
+        inline bool drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight) { return drawPng(file, x, y, maxWidth, maxHeight, 0, 0, 1.f, 1.f); };
+        inline bool drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY) { return drawPng(file, x, y,  maxWidth, maxHeight, offX, offY, scaleX, scaleY, Align2D::TopLeft); };
+        virtual bool drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY, Align2D align) = 0;
+
 #pragma mark Render
         inline void renderSprite(Sprite *sprite, Unit x, Unit y) { renderSprite(sprite, x, y, NoTransparent); };
         virtual void renderSprite(Sprite *sprite, Unit x, Unit y, Color transp) = 0;
@@ -80,6 +89,7 @@ namespace Display {
 
         inline void renderAffineAA(Sprite *sprite, const float *matrix) { renderAffineAA(sprite, matrix, NoTransparent); };
         virtual void renderAffineAA(Sprite *sprite, const float *matrix, Color transp) = 0;
+
 
     };
 }

@@ -12,7 +12,7 @@ namespace Job {
         repeating_timer _timer{0};
         volatile bool _stopped = true;
     protected:
-        static bool static_handler(struct repeating_timer *timer);
+        static bool static_handler(repeating_timer *timer);
 
         virtual bool handler();
 
@@ -22,6 +22,8 @@ namespace Job {
         explicit Chronic(ms delay);
 
         explicit Chronic(Hz period);
+
+        virtual ~Chronic() = default;
 
         bool begin();
 

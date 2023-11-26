@@ -14,6 +14,24 @@ namespace Display {
     typedef lgfx::IFont Font;
     namespace Fonts = fonts;
 
+    enum class Align2D : uint8_t {
+        TopLeft        =  0,  // Top left (default)
+        TopCenter      =  1,  // Top center
+        TopCentre      =  1,  // Top center
+        TopRight       =  2,  // Top right
+        MiddleLeft     =  4,  // Middle left
+        MiddleCenter   =  5,  // Middle center
+        MiddleCentre   =  5,  // Middle center
+        MiddleRight    =  6,  // Middle right
+        BottomLeft     =  8,  // Bottom left
+        BottomCenter   =  9,  // Bottom center
+        BottomCentre   =  9,  // Bottom center
+        BottomRight    = 10,  // Bottom right
+        BaselineLeft   = 16,  // Baseline left (Line the 'A' character would sit on)
+        BaselineCenter = 17,  // Baseline center
+        BaselineCentre = 17,  // Baseline center
+        BaselineRight  = 18,  // Baseline right
+    };
     enum class Align : uint8_t {
         Left = 0,
         Center = 1,

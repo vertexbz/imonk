@@ -3,10 +3,9 @@
 #include <LovyanGFX.h>
 
 class LGFX_GC9A01 : public lgfx::LGFX_Device {
-private:
-    lgfx::Panel_GC9A01 _panel_instance;
-    lgfx::Bus_SPI _bus_instance;
-    lgfx::Light_PWM _light_instance;
+    lgfx::Panel_GC9A01 _panel_instance{};
+    lgfx::Bus_SPI _bus_instance{};
+    lgfx::Light_PWM _light_instance{};
 
 public:
     bool begin(
