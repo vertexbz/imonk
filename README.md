@@ -3,7 +3,7 @@
 If you kno' me, you know the other and had a chance to say halo ;)
 
 ## Printed parts
-[KNOMI v2 StealthBurner body & mount plate](https://github.com/bigtreetech/KNOMI/tree/master/KNOMI2/STL)
+* [KNOMI v2 StealthBurner body & mount plate](https://github.com/bigtreetech/KNOMI/tree/master/KNOMI2/STL) - mount plate will be modified
 
 ## BOM
 

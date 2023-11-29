@@ -29,7 +29,7 @@ void Scene::Initial::update(StateData *state) {
     gauge.setPercent(state->counter);
     gauge2.setPercent(state->counter2);
     gauge3.setPercent(state->counter3);
-    line3.setString(String("Count: ") + state->counter + " / 100");
+    line3.setString(String("Count: ") + state->counter3 + " / 100");
 }
 
 void Scene::Initial::render(Display::Painter *painter) {

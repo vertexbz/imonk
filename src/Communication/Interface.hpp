@@ -1,18 +1,34 @@
 #pragma once
 
-#include <cstdint>
+#include <vertaro/spi/slave.impl.hpp>
 
-#define INTERFACE 0
+
+typedef struct {
+    uint8_t chr;
+    uint16_t word;
+    bool tf;
+} __attribute__ ((aligned(1), packed)) InterfaceData;
 
 namespace Communication {
-    class Interface {
-    private:
-        static void handler0();
-        static void handler1();
-    protected:
-        virtual uint8_t process(uint8_t byte);
+    class Interface final : protected Lib::SPI::Slave::Interface {
     public:
         Interface();
         void begin();
+
+        Lib::SPI::Slave::OutputCommand<InterfaceData> *output() {
+            return static_cast<Lib::SPI::Slave::OutputCommand<InterfaceData> *>(_commands[0]);
+        }
+
+        Lib::SPI::Slave::OutputCommand<uint16_t> *output2() {
+            return static_cast<Lib::SPI::Slave::OutputCommand<uint16_t> *>(_commands[1]);
+        }
+
+        Lib::SPI::Slave::InputCommand<InterfaceData> *input() {
+            return static_cast<Lib::SPI::Slave::InputCommand<InterfaceData> *>(_commands[2]);
+        }
+
+        Lib::SPI::Slave::InputCommand<uint32_t> *input2() {
+            return static_cast<Lib::SPI::Slave::InputCommand<uint32_t> *>(_commands[3]);
+        }
     };
 }

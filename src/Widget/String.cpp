@@ -37,11 +37,19 @@ void Widget::String::render(Display::Painter *painter) {
 }
 
 void Widget::String::setString(::String &string) {
+    if (_string.equals(string)) {
+        return;
+    }
+
     _string = std::move(string);
     _rendered = false;
 }
 
 void Widget::String::setString(const ::String &string) {
+    if (_string.equals(string)) {
+        return;
+    }
+
     _string = string;
     _rendered = false;
 }

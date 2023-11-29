@@ -58,16 +58,16 @@ void loop() {
 
 void loop1() {
     delay(90);
-    state.update([](StateData *state) {
-        state->counter2 += 2;
-        if (state->counter2 > 100) {
-            state->counter2 = 0;
-        }
-    });
-    state.update([](StateData *state){
-        state->counter += 1;
-        if (state->counter > 100) {
-            state->counter = 0;
-        }
-    });
+    // state.update([](StateData *state) {
+    //     state->counter2 += 2;
+    //     if (state->counter2 > 100) {
+    //         state->counter2 = 0;
+    //     }
+    // });
+    // state.update([](StateData *state){
+    //     state->counter += 1;
+    //     if (state->counter > 100) {
+    //         state->counter = 0;
+    //     }
+    // });
 }
