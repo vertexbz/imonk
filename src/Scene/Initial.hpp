@@ -22,5 +22,8 @@ namespace Scene {
 
         void update(StateData *state) override;
 
+        Widget::String *l2() {
+            return &line2;
+        }
     };
 }

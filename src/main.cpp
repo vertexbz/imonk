@@ -32,7 +32,13 @@ void setup() {
     }
 
     static File face = flash.open("/images/face.png", "r");
-    manager.enter(std::make_unique<Scene::Initial>(&face));
+
+    auto scene = std::make_unique<Scene::Initial>(&face);
+    interface.varinput()->callback([](Lib::SPI::Slave::VarInputCommand::Data data, Lib::SPI::Slave::VarInputCommand::Size size, void* scene) {
+        static_cast<Scene::Initial*>(scene)->l2()->setString(String(data, size));
+    }, scene.get());
+
+    manager.enter(std::move(scene));
 
     init_holder.release();
 }

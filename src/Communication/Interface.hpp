@@ -30,5 +30,13 @@ namespace Communication {
         Lib::SPI::Slave::InputCommand<uint32_t> *input2() {
             return static_cast<Lib::SPI::Slave::InputCommand<uint32_t> *>(_commands[3]);
         }
+
+        Lib::SPI::Slave::VarInputCommand *varinput() {
+            return static_cast<Lib::SPI::Slave::VarInputCommand*>(_commands[6]);
+        }
+
+        Lib::SPI::Slave::VarOutputCommand *varoutput() {
+            return static_cast<Lib::SPI::Slave::VarOutputCommand*>(_commands[7]);
+        }
     };
 }
