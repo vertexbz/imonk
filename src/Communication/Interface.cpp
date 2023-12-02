@@ -6,6 +6,7 @@
 #include <cstring>
 
 InterfaceData outputBuffer;
+auto buffer = "Testy test!";
 
 
 Communication::Interface::Interface() {
@@ -15,20 +16,23 @@ Communication::Interface::Interface() {
     addCommand(new Lib::SPI::Slave::InputCommand<InterfaceData>(11));
     addCommand(new Lib::SPI::Slave::InputCommand<uint32_t>(12, 64));
     addCommand(new Lib::SPI::Slave::InputCommand<InterfaceData>(13, outputBuffer));
-    addCommand(new Lib::SPI::Slave::VarInputCommand(20));
-    addCommand(new Lib::SPI::Slave::VarOutputCommand(21));
+
+    _in_buf = new Lib::SPI::Slave::VariableInputBuffer();
+    addCommand((new Lib::SPI::Slave::VarInputCommand(20, _in_buf))->checksum(false));
+
+    _out_buf = new Lib::SPI::Slave::VariableOutputBuffer();
+    addCommand(new Lib::SPI::Slave::VarOutputCommand(21, _out_buf));
 }
 
 void Communication::Interface::begin() {
-    varinput()->checksum(false);
-    varinput()->ethereal(true);
-    auto buffer = "Testy test!";
-    varoutput()->update(reinterpret_cast<Lib::SPI::Slave::VarOutputCommand::Data>(const_cast<char*>(buffer)), strlen(buffer));
-    setup();
+    _out_buf->update(reinterpret_cast<Lib::SPI::Slave::Buffer::Data>(const_cast<char*>(buffer)), strlen(buffer));
+
     outputBuffer.chr = 7;
     outputBuffer.word = 8765;
     outputBuffer.tf = true;
     output()->update(&outputBuffer);
 
     output2()->update(1111);
+
+    setup();
 }

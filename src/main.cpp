@@ -34,7 +34,7 @@ void setup() {
     static File face = flash.open("/images/face.png", "r");
 
     auto scene = std::make_unique<Scene::Initial>(&face);
-    interface.varinput()->callback([](Lib::SPI::Slave::VarInputCommand::Data data, Lib::SPI::Slave::VarInputCommand::Size size, void* scene) {
+    interface.inBuf()->callback([](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size size, void* scene) {
         static_cast<Scene::Initial*>(scene)->l2()->setString(String(data, size));
     }, scene.get());
 
