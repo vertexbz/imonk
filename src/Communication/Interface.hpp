@@ -5,7 +5,7 @@
 namespace Communication {
 class Interface final : protected Lib::SPI::Slave::Interface {
 protected:
-    Lib::SPI::Slave::VariableInputBuffer *_in_buf;
+    Lib::SPI::Slave::VariableInputBuffer *_in_buf = nullptr;
 
 public:
     Interface();
