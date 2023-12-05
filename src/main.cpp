@@ -16,7 +16,7 @@ static Filesystem::Filesystem flash;
 static State state;
 static StageManager manager(24, &display, &state);
 
-static Communication::Interface interface;
+static Communication::Interface interface(&flash);
 
 static Job::Semaphore init_holder(0, 1);
 
