@@ -31,7 +31,7 @@ class SPI:
     def __enter__(self):
         self._switch_cs(True)
         sleep(0.01)
-        return SPITransaction(self._spi)
+        return SPITransaction(self._spi, self.printer.lookup_object('gcode'))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._switch_cs(False)

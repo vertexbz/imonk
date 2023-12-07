@@ -21,11 +21,11 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs) {
 
     // 0x10 get images manifest
     // 0x11 upload image
-    addCommand(FilesystemInputCommand(0x11, fs)); // todo basepath, validate .png
+    addCommand(FilesystemInputCommand(0x11, fs, "/images/")); // todo validate .png
 
     // 0x20 get scenes manifest
     // 0x21 upload scene
-    addCommand(FilesystemInputCommand(0x21, fs)); // todo basepath, validate .json
+    addCommand(FilesystemInputCommand(0x21, fs, "/scenes/")); // todo validate .json
 
     // 0x30 set scene
     // 0x31 set variable int vs float vs str!?
@@ -35,6 +35,7 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs) {
     addCommand(VariableOutputCommand(0xA1)->withBuffer<Lib::SPI::Slave::VariableOutputBuffer>([](auto &buf) {
         buf.update(reinterpret_cast<Lib::SPI::Slave::Buffer::Data>(const_cast<char*>(buffer)), strlen(buffer));
     }));
+    addCommand(TypedInputCommand<Version>(0xA2)->checksum(false));
 }
 
 void Communication::Interface::begin() {

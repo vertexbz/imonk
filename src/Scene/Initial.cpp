@@ -11,7 +11,7 @@ Scene::Initial::Initial(File *face)
 , gauge2(120, 120, 110, 9, 0xFF8800)
 , gauge3(120, 120, 100, 9, 0x0000FF)
 , line(120, 90, Display::Align::Center, 0XFFFFFF, &Display::Fonts::Font0)
-, line2(120, 110, Display::Align::Center, 0XFF00FF, &Display::Fonts::Font0)
+, line2(120, 105, Display::Align::Center, 0XFF00FF, &Display::Fonts::Font2)
 , line3(120, 130, Display::Align::Center, 0XFFFF00, &Display::Fonts::Font2)
 , face(face, 70, 160)
 {
