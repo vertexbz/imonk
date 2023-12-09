@@ -21,11 +21,11 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs) {
 
     // 0x10 get images manifest
     // 0x11 upload image
-    addCommand(FilesystemInputCommand(0x11, fs, "/images/")); // todo validate .png
+    addCommand(_upload_image = FilesystemInputCommand(0x11, fs, "/images/")); // todo validate .png
 
     // 0x20 get scenes manifest
     // 0x21 upload scene
-    addCommand(FilesystemInputCommand(0x21, fs, "/scenes/")); // todo validate .json
+    addCommand(_upload_scene = FilesystemInputCommand(0x21, fs, "/scenes/")); // todo validate .json
 
     // 0x30 set scene
     // 0x31 set variable int vs float vs str!?
@@ -40,4 +40,9 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs) {
 
 void Communication::Interface::begin() {
     setup();
+}
+
+void Communication::Interface::loop() {
+    _upload_image->loop();
+    _upload_scene->loop();
 }

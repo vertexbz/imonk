@@ -21,6 +21,7 @@ class SPI:
         speed = config.getint('spi_speed', 300000, minval=100000)
 
         self._cs: MCU_digital_out = ppins.setup_pin('digital_out', cs_pin)
+        self._cs.setup_max_duration(0)
         self._cs.setup_start_value(1., 1.)
         self._spi = bus.MCU_SPI(self._cs.get_mcu(), spi_bus, None, 3, speed)
 
@@ -31,7 +32,7 @@ class SPI:
     def __enter__(self):
         self._switch_cs(True)
         sleep(0.01)
-        return SPITransaction(self._spi, self.printer.lookup_object('gcode'))
+        return SPITransaction(self._spi)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._switch_cs(False)

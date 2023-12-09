@@ -8,6 +8,8 @@ class Filesystem;
 
 namespace Communication {
 class Interface final : protected Lib::SPI::Slave::Interface {
+    Lib::SPI::Slave::FileUploadCommand *_upload_image = nullptr;
+    Lib::SPI::Slave::FileUploadCommand *_upload_scene = nullptr;
 protected:
     Lib::SPI::Slave::VariableInputBuffer *_in_buf = nullptr;
 
@@ -16,8 +18,14 @@ public:
 
     void begin();
 
-    Lib::SPI::Slave::VariableInputBuffer *inBuf() {
+    void loop();
+
+    [[nodiscard]] Lib::SPI::Slave::VariableInputBuffer *inBuf() const {
         return _in_buf;
+    }
+
+    [[nodiscard]] Lib::SPI::Slave::FileUploadCommand *upImg() const {
+        return _upload_image;
     }
 };
 }

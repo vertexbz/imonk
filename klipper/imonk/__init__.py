@@ -87,7 +87,7 @@ class IMONK:
                 with open(os.path.expanduser(gcmd.get('PATH')), 'rb') as f:
                     data = f.read()
 
-                spi.upload_command(0x11, gcmd.get('NAME'), data, True)
+                spi.upload_file_command(0x11, gcmd.get('NAME'), data, True)
             except (CommunicationError, FileNotFoundError) as e:
                 raise gcmd.error(str(e) + '\n' + traceback.format_exc())
 
