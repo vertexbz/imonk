@@ -140,6 +140,10 @@ class SPITransaction:
 
         return bytes(buf)
 
+    def exec_command(self, cmd: int) -> None:
+        self.transfer(cmd)
+        self.duplex_write(0, cmd)
+
     def write_command(self, cmd: int, data: bytes, var_len: bool = False, crc: bool = False) -> None:
         self.transfer(cmd)
         self.write(data, var_len, crc)

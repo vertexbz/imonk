@@ -21,21 +21,26 @@ struct Version {
 Communication::Interface::Interface(Filesystem::Filesystem *fs) {
     addCommand(TypedOutputCommand<Version>(0x01));
     addCommand(_update = new UpdateCommand(0x0A, fs));
+    addCommand(_reboot = new Lib::SPI::Slave::ExecCommand(0x0F, [] {
+        rp2040.reboot();
+    }, true));
 
-    // 0x10 get images manifest
     addCommand(_remove_image = VariableInputCommand(0x10, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
         fs->remove((String("/images/") + reinterpret_cast<char*>(data)).c_str());
     }, true));
     addCommand(_upload_image = FileUploadCommand(0x11, fs, "/images/")); // todo validate .png
+    // 0x12 get images manifest
 
-    // 0x20 get scenes manifest
     addCommand(_remove_scene = VariableInputCommand(0x20, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
         fs->remove((String("/scenes/") + reinterpret_cast<char*>(data)).c_str());
     }, true));
     addCommand(_upload_scene = FileUploadCommand(0x21, fs, "/scenes/")); // todo validate .json
+    // 0x22 get scenes manifest
 
     // 0x30 set scene
     // 0x31 set variable int vs float vs str!?
+    // 0x32 render?
+    // transactions?
 
 
     addCommand(VariableInputCommand(0xA0, false)->grabBuffer(_in_buf));
@@ -55,4 +60,5 @@ void Communication::Interface::loop() {
     _upload_image->loop();
     _remove_scene->loop();
     _upload_scene->loop();
+    _reboot->loop();
 }
