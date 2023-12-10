@@ -32,9 +32,10 @@ void setup() {
     static Filesystem::File face = flash.open(face_path, "r");
 
     auto scene = std::make_unique<Scene::Initial>(&face);
-    interface.inBuf()->callback([](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size size, void* scene) {
-        static_cast<Scene::Initial*>(scene)->l2()->setString(String(data, size));
-    }, scene.get());
+    auto s = scene.get();
+    interface.inBuf()->callback([s](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size size) {
+        s->l2()->setString(String(data, size));
+    });
 
     manager.enter(std::move(scene));
 }

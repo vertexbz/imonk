@@ -7,9 +7,8 @@
 
 const auto fw_name = "/firmware.bin";
 
-
 Communication::UpdateCommand::UpdateCommand(ID id, FS *fs): NamedUploadCommand(id, fs, fw_name) {
-    _fs.callback_final([this, fs](void*) { initUpdate(fs); });
+    _fs.callback_final([this, fs] { initUpdate(fs); });
 }
 
 static uint32_t crc(const void *d, uint32_t len) {
