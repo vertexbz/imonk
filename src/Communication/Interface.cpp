@@ -23,13 +23,13 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs) {
     addCommand(_update = new UpdateCommand(0x0A, fs));
 
     // 0x10 get images manifest
-    addCommand(VariableInputCommand(0x10, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
-        fs->remove((String("/image/") + reinterpret_cast<char*>(data)).c_str());
+    addCommand(_remove_image = VariableInputCommand(0x10, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
+        fs->remove((String("/images/") + reinterpret_cast<char*>(data)).c_str());
     }, true));
     addCommand(_upload_image = FileUploadCommand(0x11, fs, "/images/")); // todo validate .png
 
     // 0x20 get scenes manifest
-    addCommand(VariableInputCommand(0x20, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
+    addCommand(_remove_scene = VariableInputCommand(0x20, true, [fs](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size _) {
         fs->remove((String("/scenes/") + reinterpret_cast<char*>(data)).c_str());
     }, true));
     addCommand(_upload_scene = FileUploadCommand(0x21, fs, "/scenes/")); // todo validate .json
@@ -51,6 +51,8 @@ void Communication::Interface::begin() {
 
 void Communication::Interface::loop() {
     _update->loop();
+    _remove_image->loop();
     _upload_image->loop();
+    _remove_scene->loop();
     _upload_scene->loop();
 }

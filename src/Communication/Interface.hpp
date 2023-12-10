@@ -10,6 +10,8 @@ namespace Communication {
 class UpdateCommand;
 
 class Interface final : protected Lib::SPI::Slave::Interface {
+    Lib::SPI::Slave::InputCommand *_remove_image = nullptr;
+    Lib::SPI::Slave::InputCommand *_remove_scene = nullptr;
     Lib::SPI::Slave::FileUploadCommand *_upload_image = nullptr;
     Lib::SPI::Slave::FileUploadCommand *_upload_scene = nullptr;
     UpdateCommand *_update = nullptr;

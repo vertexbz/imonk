@@ -27,6 +27,7 @@ class IMONK:
         self.gcode.register_command('IMONK_TEST2', self.cmd_IMONK_TEST2, desc="Test2")
         self.gcode.register_command('IMONK_TEST3', self.cmd_IMONK_TEST3, desc="Test3")
         self.gcode.register_command('IMONK_TEST4', self.cmd_IMONK_TEST4, desc="Test4")
+        self.gcode.register_command('IMONK_TEST5', self.cmd_IMONK_TEST5, desc="Test5")
 
     def _get_version(self, spi: SPITransaction) -> tuple[int, int, int]:
         version = spi.read_command(0x01, 3)
@@ -93,6 +94,13 @@ class IMONK:
                     data = f.read()
 
                 spi.upload_file_command(0x11, gcmd.get('NAME'), data, True)
+            except (CommunicationError, FileNotFoundError) as e:
+                raise gcmd.error(str(e) + '\n' + traceback.format_exc())
+
+    def cmd_IMONK_TEST5(self, gcmd: GCodeCommand):
+        with self.spi as spi:
+            try:
+                spi.write_command(0x10, gcmd.get('NAME').encode('ascii'), True, True)
             except (CommunicationError, FileNotFoundError) as e:
                 raise gcmd.error(str(e) + '\n' + traceback.format_exc())
 
