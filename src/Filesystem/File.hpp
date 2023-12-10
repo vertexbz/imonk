@@ -4,11 +4,10 @@
 #include <FS.h>
 
 namespace Filesystem {
-struct FileWrapper : lgfx::DataWrapper {
-protected:
-    File *_file;
+class File : public fs::File, public lgfx::DataWrapper {
 public:
-    explicit FileWrapper(File *file);
+    using fs::File::File;
+    virtual ~File() = default;
 
     int read(uint8_t *buf, uint32_t len) override;
 
@@ -19,6 +18,5 @@ public:
     void close() override;
 
     int32_t tell() override;
-
 };
 }

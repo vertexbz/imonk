@@ -6,7 +6,7 @@
 #include "../Display/Display.hpp"
 #include "../Filesystem/Filesystem.hpp"
 
-Scene::Initial::Initial(File *face)
+Scene::Initial::Initial(Filesystem::File *face)
 : gauge(120, 120, 120, 9, 0xFF0000)
 , gauge2(120, 120, 110, 9, 0xFF8800)
 , gauge3(120, 120, 100, 9, 0x0000FF)

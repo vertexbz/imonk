@@ -1,6 +1,6 @@
 #pragma once
 
-#include <FS.h>
+#include "../Filesystem/File.hpp"
 #include "../Display/types.hpp"
 #include "../Display/Widget.hpp"
 
@@ -10,10 +10,10 @@ namespace Widget {
         Display::Unit _x;
         Display::Unit _y;
 
-        File *_file;
+        Filesystem::File *_file;
         bool _rendered;
     public:
-        Image(File *file, Display::Unit x, Display::Unit y);
+        Image(Filesystem::File *file, Display::Unit x, Display::Unit y);
 
         void render(Display::Painter *) override;
     };

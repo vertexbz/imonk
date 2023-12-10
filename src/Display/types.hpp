@@ -1,7 +1,6 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
 #include <lgfx/v1/lgfx_fonts.hpp>
+#include <lgfx/v1/misc/DataWrapper.hpp>
 
 typedef uint16_t  wchar;
 
@@ -10,6 +9,7 @@ namespace Display {
     const Color NoTransparent = 1 << 24;
     const Color Background = 1 << 25;
 
+    typedef lgfx::DataWrapper File;
     typedef int32_t Unit;
     typedef lgfx::IFont Font;
     namespace Fonts = fonts;

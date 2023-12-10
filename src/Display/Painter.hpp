@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types.hpp"
-#include <FS.h>
 
 namespace Display {
     class Display;

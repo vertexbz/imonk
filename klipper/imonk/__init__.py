@@ -52,10 +52,15 @@ class IMONK:
         # TODO bail in print
         with self.spi as spi:
             try:
-                major, minor, micro = self._get_version(spi)
-                gcmd.respond_info(f'IMONK Firmware Version {major}.{minor}.{micro}')
-            except CommunicationError as e:
-                raise gcmd.error(str(e))
+                path = gcmd.get('PATH')
+                with open(os.path.expanduser(path), 'rb') as f:
+                    data = f.read()
+
+                gcmd.respond_info(f'Updating from: {path}')
+                spi.upload_command(0x0A, data, True)
+                gcmd.respond_info('Uploaded')
+            except (CommunicationError, FileNotFoundError) as e:
+                raise gcmd.error(str(e) + '\n' + traceback.format_exc())
 
     # TODO SET_SCENE
     # TODO SET_VARIABLE

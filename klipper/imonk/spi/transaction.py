@@ -1,14 +1,23 @@
 from __future__ import annotations
+from functools import cached_property
 from typing import Optional
+from typing import TYPE_CHECKING
 from time import sleep
 from extras import bus
 from .crc import crc16_quick, crc16_step
 from .error import CRCError, CommunicationError, UnexpectedResponse, ByteCounter
 
+if TYPE_CHECKING:
+    from gcode import GCodeDispatch
+
 
 class SPITransaction:
     def __init__(self, spi: bus.MCU_SPI):
         self._spi = spi
+
+    @cached_property
+    def gcode(self) -> GCodeDispatch:
+        return self._spi.mcu.get_printer().lookup_object('gcode')
 
     def transfer(self, byte: int) -> int:
         params = self._spi.spi_transfer([byte])
@@ -105,6 +114,11 @@ class SPITransaction:
             sleep(delay_epilogue)
             self.epilogue(crc_computed)
 
+    def write_data(self, data: bytes, crc: bool = False):
+        self.write(len(data).to_bytes(4, 'little', signed=False), False, False)
+        sleep(0.5)
+        self.write_segmented(data, crc, delay_epilogue=1.)
+
     def read_command(self, cmd: int, length: Optional[int] = None) -> bytes:
         buf = bytearray()
         crc_buf = bytearray()
@@ -130,9 +144,11 @@ class SPITransaction:
         self.transfer(cmd)
         self.write(data, var_len, crc)
 
+    def upload_command(self, cmd: int, data: bytes, crc: bool = False):
+        self.transfer(cmd)
+        self.write_data(data, crc)
+
     def upload_file_command(self, cmd: int, name: str, data: bytes, crc: bool = False):
         self.transfer(cmd)
         self.write(name.encode('ascii'), True, False)
-        self.write(len(data).to_bytes(4, 'little', signed=False), False, False)
-        sleep(0.5)
-        self.write_segmented(data, crc)
+        self.write_data(data, crc)

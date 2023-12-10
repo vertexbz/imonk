@@ -29,7 +29,7 @@ void setup() {
         face_path = face2;
     }
 
-    static File face = flash.open(face_path, "r");
+    static Filesystem::File face = flash.open(face_path, "r");
 
     auto scene = std::make_unique<Scene::Initial>(&face);
     interface.inBuf()->callback([](Lib::SPI::Slave::Buffer::Data data, Lib::SPI::Slave::Buffer::Size size, void* scene) {
@@ -45,13 +45,13 @@ void setup1() {
 
 void loop() {
     interface.loop();
-    state.update([](StateData *state){
-        if (const int8_t progress = interface.upImg()->data()->progress(); progress >= 0) {
-            state->counter3 = static_cast<uint8_t>(progress);
-        } else {
-            state->counter3 = 0;
-        }
-    });
+    // state.update([](StateData *state){
+    //     if (const int8_t progress = interface.upImg()->data()->progress(); progress >= 0) {
+    //         state->counter3 = static_cast<uint8_t>(progress);
+    //     } else {
+    //         state->counter3 = 0;
+    //     }
+    // });
 }
 
 void loop1() {

@@ -1,5 +1,6 @@
 #pragma once
 #include "_scene_.hpp"
+#include "../Filesystem/File.hpp"
 #include "../Widget/Gauge.hpp"
 #include "../Widget/String.hpp"
 #include "../Widget/Image.hpp"
@@ -17,7 +18,7 @@ namespace Scene {
     protected:
         void _init() override;
     public:
-        explicit Initial(File *face);
+        explicit Initial(Filesystem::File *face);
         void render(Display::Painter *painter) override;
 
         void update(StateData *state) override;

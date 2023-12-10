@@ -3,29 +3,32 @@
 //
 
 #include "./Interface.hpp"
+#include "./UpdateCommand.hpp"
 #include <cstring>
 #include <Filesystem/Filesystem.hpp>
 
 using namespace Lib::SPI::Slave::CommandFactory;
+
 auto buffer = "Testy test!";
 
 struct Version {
     uint8_t major = 0;
     uint8_t minor = 0;
     uint8_t micro = 1;
-} ;
+};
+
 
 Communication::Interface::Interface(Filesystem::Filesystem *fs) {
     addCommand(TypedOutputCommand<Version>(0x01));
-    // 0x0F update
+    addCommand(_update = new UpdateCommand(0x0A, fs));
 
     // 0x10 get images manifest
     // 0x11 upload image
-    addCommand(_upload_image = FilesystemInputCommand(0x11, fs, "/images/")); // todo validate .png
+    addCommand(_upload_image = FileUploadCommand(0x11, fs, "/images/")); // todo validate .png
 
     // 0x20 get scenes manifest
     // 0x21 upload scene
-    addCommand(_upload_scene = FilesystemInputCommand(0x21, fs, "/scenes/")); // todo validate .json
+    addCommand(_upload_scene = FileUploadCommand(0x21, fs, "/scenes/")); // todo validate .json
 
     // 0x30 set scene
     // 0x31 set variable int vs float vs str!?
@@ -43,6 +46,7 @@ void Communication::Interface::begin() {
 }
 
 void Communication::Interface::loop() {
+    _update->loop();
     _upload_image->loop();
     _upload_scene->loop();
 }

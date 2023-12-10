@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types.hpp"
-#include <StreamString.h>
 
 namespace Display {
     namespace Util {

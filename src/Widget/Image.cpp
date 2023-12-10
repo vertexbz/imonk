@@ -6,7 +6,7 @@
 
 #include <Display/Painter.hpp>
 
-Widget::Image::Image(File *file, const Display::Unit x, const Display::Unit y) {
+Widget::Image::Image(Filesystem::File *file, const Display::Unit x, const Display::Unit y) {
     _rendered = false;
     _file = file;
     _x = x;

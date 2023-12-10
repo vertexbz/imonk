@@ -2,7 +2,6 @@
 // Created by Adam Makswiej on 20/11/2023.
 //
 
-#include "../Filesystem/FileWrapper.hpp"
 #include "Display.hpp"
 #include "Sprite.hpp"
 #include "Scene.hpp"
@@ -136,8 +135,8 @@ size_t Display::Display::drawString(const char *string, Unit x, Unit y, Align al
 
 #pragma mark Painter - Images
 bool Display::Display::drawPng(File *file, Unit x, Unit y, Unit maxWidth, Unit maxHeight, Unit offX, Unit offY, float scaleX, float scaleY, Align2D align) {
-    Filesystem::FileWrapper data_wrapper(file);
-    return this->draw_png(&data_wrapper, x, y, maxWidth, maxHeight, offX, offY, scaleX, scaleY, static_cast<datum_t>(align));
+    if (!file) return false;
+    return this->draw_png(file, x, y, maxWidth, maxHeight, offX, offY, scaleX, scaleY, static_cast<datum_t>(align));
 }
 
 #pragma mark Painter - Render

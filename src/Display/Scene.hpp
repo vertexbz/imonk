@@ -8,7 +8,6 @@ namespace Display {
     class Painter;
 
     class Scene {
-    private:
         StageManager *_manager = nullptr;
     protected:
         virtual void _init() {};
