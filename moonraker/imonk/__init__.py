@@ -20,7 +20,7 @@ class IMONK(Subscribable):
 
         self.server.register_endpoint('/machine/imonk/version', ['GET'], self.handle_version)
         moonraker.mutable_router.add_handler('/machine/imonk/firmware', UploadHandler, {
-            'max_upload_size': 1024 * 1024,
+            'max_upload_size': 2 * 1024 * 1024,
             'handler': self.handle_update
         })
 

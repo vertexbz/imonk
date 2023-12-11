@@ -30,8 +30,7 @@ class UploadHandler(AuthorizedRequestHandler):
             f'Upload Request Received from {self.request.remote_ip}\n'
             f'Content-Type: {content_type}'
         )
-        fm: FileManager = self.server.lookup_component('file_manager')
-        fm.check_write_enabled()
+        self.file_manager.check_write_enabled()
         if self.request.method == 'POST':
             assert isinstance(self.request.connection, HTTP1Connection)
             self.request.connection.set_max_body_size(self.max_upload_size)
