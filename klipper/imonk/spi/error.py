@@ -6,6 +6,10 @@ def to_hex(byte: int) -> str:
     return hex(byte)[2:].upper().zfill(2)
 
 
+class StopReading(Exception):
+    ...
+
+
 class CommunicationError(Exception):
     def __init__(self, *a):
         self.position = dict()

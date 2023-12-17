@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from time import sleep
 from extras import bus
 from .crc import crc16_quick, crc16_step
-from .error import CRCError, CommunicationError, UnexpectedResponse, ByteCounter
+from .error import CRCError, CommunicationError, UnexpectedResponse, ByteCounter, StopReading
 
 if TYPE_CHECKING:
     from gcode import GCodeDispatch
@@ -78,7 +78,7 @@ class SPITransaction:
             self.epilogue(crc_computed)
 
     def write_segmented(self, data: bytes, crc: bool = False, segment_size: int = 16, block_size: int = 256,
-                        delay_block: float = 0.05, delay_epilogue: float = 0.5) -> None:
+                        delay_block: float = 0.05, delay_epilogue: float = 0.5) -> int:
         last = 0
         crc_computed = 0xFFFF
 
@@ -114,10 +114,12 @@ class SPITransaction:
             sleep(delay_epilogue)
             self.epilogue(crc_computed)
 
+        return crc_computed
+
     def write_data(self, data: bytes, crc: bool = False):
         self.write(len(data).to_bytes(4, 'little', signed=False), False, False)
         sleep(0.5)
-        self.write_segmented(data, crc, delay_epilogue=1.)
+        return self.write_segmented(data, crc, delay_epilogue=1.)
 
     def read_command(self, cmd: int, length: Optional[int] = None) -> bytes:
         buf = bytearray()
@@ -140,6 +142,38 @@ class SPITransaction:
 
         return bytes(buf)
 
+    def greedy_read_command(self, cmd: int) -> bytes:
+        buf = bytearray()
+        try:
+            self.transfer(cmd)
+            sleep(0.05)
+            initialResponse = self.transfer(0x00)
+            if initialResponse == 0x03:
+                raise StopReading()
+            if initialResponse != 0x00:
+                raise CommunicationError('Failed opening directory')
+
+            while True:
+                buf.append(self.transfer(0x00))
+                buf.append(self.transfer(0x00))
+
+                while True:
+                    if len(buf) > 5 and sum(buf[-5:]) == 0:
+                        raise StopReading()
+                    if len(buf) > 5 and buf[-1] == 0xFF and buf[-2] == 0xFF and buf[-3] == 0xFF:
+                        raise StopReading()
+
+                    b = self.transfer(0x00)
+                    buf.append(b)
+                    if b == 0x00:
+                        sleep(0.05)
+                        self.transfer(0x00)
+                        break
+        except StopReading:
+            pass
+
+        return bytes(buf.rstrip(b'\xff'))
+
     def exec_command(self, cmd: int) -> None:
         self.transfer(cmd)
         self.duplex_write(0, cmd)
@@ -150,9 +184,9 @@ class SPITransaction:
 
     def upload_command(self, cmd: int, data: bytes, crc: bool = False):
         self.transfer(cmd)
-        self.write_data(data, crc)
+        return self.write_data(data, crc)
 
     def upload_file_command(self, cmd: int, name: str, data: bytes, crc: bool = False):
         self.transfer(cmd)
         self.write(name.encode('ascii'), True, False)
-        self.write_data(data, crc)
+        return self.write_data(data, crc)

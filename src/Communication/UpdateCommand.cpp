@@ -7,11 +7,11 @@
 
 const auto fw_name = "/firmware.bin";
 
-Communication::UpdateCommand::UpdateCommand(ID id, FS *fs): NamedUploadCommand(id, fs, fw_name) {
+Communication::UpdateCommand::UpdateCommand(ID id, Filesystem::Filesystem *fs): NamedUploadCommand(id, fs, fw_name) {
     _fs.callback_final([this, fs] { initUpdate(fs); });
 }
 
-static uint32_t crc(const void *d, uint32_t len) {
+static uint32_t ota_crc(const void *d, uint32_t len) {
     uint32_t crc = 0xffffffff;
     const auto *data = static_cast<const uint8_t *>(d);
     for (uint32_t i = 0; i < len; i++) {
@@ -27,7 +27,7 @@ static uint32_t crc(const void *d, uint32_t len) {
     return ~crc;
 }
 
-void Communication::UpdateCommand::initUpdate(FS *fs) {
+void Communication::UpdateCommand::initUpdate(Filesystem::Filesystem *fs) {
     auto fw = fs->open(fw_name, "r");
     if (!fw) {
         return;
@@ -47,7 +47,7 @@ void Communication::UpdateCommand::initUpdate(FS *fs) {
     page->cmd[page->count].write.flashAddress = XIP_BASE;
     page->count++;
 
-    page->crc32 = crc(page, offsetof(OTACmdPage, crc32));
+    page->crc32 = ota_crc(page, offsetof(OTACmdPage, crc32));
 
     auto cmd = fs->open(_OTA_COMMAND_FILE, "w");
     if (!cmd) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "File.hpp"
+#include <vertaro/crc.hpp>
 #include <FS.h>
 
 namespace Filesystem {
@@ -10,5 +11,12 @@ public:
     virtual ~Dir() = default;
 
     File openFile(const char* mode);
+
+    bool firstFile();
+
+    bool nextFile();
+
+    [[nodiscard]] Lib::CRC::CRC16 fileCRC() const;
+
 };
 }

@@ -9,6 +9,15 @@ if TYPE_CHECKING:
 
 class IMONKResourceScene:
     def __init__(self, config: ConfigWrapper, name: str, manager: IMONKManager):
-        self.manager = manager
         self.name = name
         self.printer: Printer = config.get_printer()
+
+        manager.state.host.scenes[self.name] = self
+
+    @property
+    def crc(self) -> int:
+        return 0
+
+    @property
+    def data(self) -> bytes:
+        return b''
