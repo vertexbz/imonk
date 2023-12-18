@@ -7,11 +7,14 @@ from .api import API
 from .spi import SPI
 from .state import State
 from .utils import with_error_handler
+from .resource import build_resource, IMONKResourceImage, IMONKResourceScene
+from .mock.printer_config import PrinterConfig
 
 if TYPE_CHECKING:
     from configfile import ConfigWrapper
     from klippy import Printer
     from gcode import GCodeDispatch, GCodeCommand
+    from extras.idle_timeout import IdleTimeout
     from webhooks import WebHooks, WebRequest, ClientConnection
 
 
@@ -20,29 +23,72 @@ class IMONKManager:
         self.state = State()
         self.api = API(SPI(config), self.state)
 
-        printer: Printer = config.get_printer()
+        self.printer: Printer = config.get_printer()
+        self.idle_timeout: IdleTimeout = self.printer.load_object(config, 'idle_timeout')
 
         if config.getboolean('synchronize', True):
-            printer.register_event_handler("klippy:connect", self.synchronize)
+            self.printer.register_event_handler("klippy:connect", self.on_klippy_connect)
 
-        webhooks: WebHooks = printer.lookup_object('webhooks')
+        webhooks: WebHooks = self.printer.lookup_object('webhooks')
         webhooks.register_endpoint('imonk/version', self.handle_webhook_version)
         webhooks.register_endpoint('imonk/update', self.handle_webhook_update)
 
-        self.gcode: GCodeDispatch = printer.lookup_object('gcode')
-        self.gcode.register_command('IMONK_FIRMWARE_VERSION', with_error_handler(self.cmd_IMONK_FIRMWARE_VERSION), desc='Print current IMONK firmware version')
-        self.gcode.register_command('IMONK_FIRMWARE_UPDATE', with_error_handler(self.cmd_IMONK_FIRMWARE_UPDATE), desc='Update IMONK firmware')
-        self.gcode.register_command('IMONK_STAGE_SCENE', with_error_handler(self.cmd_IMONK_STAGE_SCENE), desc="Stages IMONK Scene for variables input and display")
-        self.gcode.register_command('IMONK_SET_VALUE', with_error_handler(self.cmd_IMONK_SET_VALUE), desc="Set IMONK Scene variable value")
-        self.gcode.register_command('IMONK_COMMIT_SCENE', with_error_handler(self.cmd_IMONK_COMMIT_SCENE), desc="Commits (displays) prepared IMONK Scene")
-        self.gcode.register_command('IMONK_ABORT_SCENE', with_error_handler(self.cmd_IMONK_ABORT_SCENE), desc="Aborts IMONK Scene preparation")
-        self.gcode.register_command('IMONK_REBOOT', with_error_handler(self.cmd_IMONK_REBOOT), desc='Reboot IMONK')
-        self.gcode.register_command('IMONK_RELOAD_CONFIG', with_error_handler(self.cmd_IMONK_RELOAD_CONFIG), desc='(Re)Load IMONK configuration')
-        self.gcode.register_command('IMONK_LOAD_DEVICE_STATE', with_error_handler(self.cmd_IMONK_LOAD_DEVICE_STATE), desc='Load IMONK scenes and images from device')
-        self.gcode.register_command('IMONK_SYNCHRONIZE', with_error_handler(self.cmd_IMONK_SYNCHRONIZE), desc='Synchronize IMONK scenes and images')
+        self.gcode: GCodeDispatch = self.printer.lookup_object('gcode')
+        self.gcode.register_command(
+            'IMONK_FIRMWARE_VERSION',
+            with_error_handler(self.cmd_IMONK_FIRMWARE_VERSION),
+            desc='Print current IMONK firmware version'
+        )
+        self.gcode.register_command(
+            'IMONK_FIRMWARE_UPDATE',
+            with_error_handler(self.cmd_IMONK_FIRMWARE_UPDATE),
+            desc='Update IMONK firmware'
+        )
+        self.gcode.register_command(
+            'IMONK_STAGE_SCENE',
+            with_error_handler(self.cmd_IMONK_STAGE_SCENE),
+            desc="Stages IMONK Scene for variables input and display"
+        )
+        self.gcode.register_command(
+            'IMONK_SET_VALUE',
+            with_error_handler(self.cmd_IMONK_SET_VALUE),
+            desc="Set IMONK Scene variable value"
+        )
+        self.gcode.register_command(
+            'IMONK_COMMIT_SCENE',
+            with_error_handler(self.cmd_IMONK_COMMIT_SCENE),
+            desc="Commits (displays) prepared IMONK Scene"
+        )
+        self.gcode.register_command(
+            'IMONK_ABORT_SCENE',
+            with_error_handler(self.cmd_IMONK_ABORT_SCENE),
+            desc="Aborts IMONK Scene preparation"
+        )
+        self.gcode.register_command(
+            'IMONK_REBOOT',
+            with_error_handler(self.cmd_IMONK_REBOOT),
+            desc='Reboot IMONK'
+        )
+        self.gcode.register_command(
+            'IMONK_RELOAD_CONFIG',
+            self.cmd_IMONK_RELOAD_CONFIG,
+            desc='(Re)Load IMONK configuration'
+        )
+        self.gcode.register_command(
+            'IMONK_LOAD_DEVICE_STATE',
+            with_error_handler(self.cmd_IMONK_LOAD_DEVICE_STATE),
+            desc='Load IMONK scenes and images from device'
+        )
+        self.gcode.register_command(
+            'IMONK_SYNCHRONIZE',
+            with_error_handler(self.cmd_IMONK_SYNCHRONIZE),
+            desc='Synchronize IMONK scenes and images'
+        )
+
+        self._load_resources(config)
 
 # Hooks
-    def synchronize(self):
+    def on_klippy_connect(self):
         command = self.gcode.create_gcode_command('', '', {})
 
         self.cmd_IMONK_LOAD_DEVICE_STATE(command)
@@ -74,7 +120,9 @@ class IMONKManager:
         gcmd.respond_info(f'IMONK Firmware Version {major}.{minor}.{micro}')
 
     def cmd_IMONK_FIRMWARE_UPDATE(self, gcmd: GCodeCommand):
-        # TODO bail in print
+        if self._is_printing():
+            raise gcmd.error('Cannot update IMONK while printing')
+
         path = gcmd.get('PATH')
         with open(expanduser(path), 'rb') as f:
             gcmd.respond_info(f'Updating Firmware from: {path}')
@@ -116,14 +164,28 @@ class IMONKManager:
         gcmd.respond_info('Rebooting IMONK')
 
     def cmd_IMONK_RELOAD_CONFIG(self, gcmd: GCodeCommand):
-        gcmd.respond_info('IMONK config loaded!')  # SUGGEST SYNC / LOAD STATE IF (NO) CHANGES
+        try:
+            config = PrinterConfig(self.printer).read_main_config()
+            self._load_resources(config)
+            gcmd.respond_info('IMONK config loaded!' + self._diff_message())
+        except Exception as e:
+            raise gcmd.error(f'Failed reloading IMONK configuration: {e}')
 
     def cmd_IMONK_LOAD_DEVICE_STATE(self, gcmd: GCodeCommand):
         self.api.images_manifest()
         self.api.scenes_manifest()
-        gcmd.respond_info('IMONK State loaded!')
+        gcmd.respond_info('IMONK State loaded!' + self._diff_message())
 
     def cmd_IMONK_SYNCHRONIZE(self, gcmd: GCodeCommand):
+        if self._is_printing():
+            raise gcmd.error('Cannot synchronize IMONK while printing')
+
+        known_images = set(self.state.host.images.keys())
+
+        for scene in self.state.host.scenes.values():
+            diff = scene.used_images.difference(known_images)
+            if diff:
+                raise gcmd.error(f'IMONK Scene {scene.name} references not existing images {diff}')
 
         # TODO Fix logs at startup
         for name in self.state.device.images.keys():
@@ -155,3 +217,36 @@ class IMONKManager:
                     gcmd.respond_info(f'IMONK Updated image {name}')
 
         gcmd.respond_info('IMONK Synchronized!')
+
+# Helpers
+    def _load_resources(self, config: ConfigWrapper):
+        images = {}
+        scenes = {}
+        for section in config.get_prefix_sections('imonk '):
+            resource = build_resource(section)
+            if isinstance(resource, IMONKResourceImage):
+                images[resource.name] = resource
+            elif isinstance(resource, IMONKResourceScene):
+                scenes[resource.name] = resource
+            else:
+                raise ValueError(f'Unknown resource type {type(resource)}')
+
+        self.state.host.images = images
+        self.state.host.scenes = scenes
+
+    def _is_printing(self) -> bool:
+        return self.idle_timeout.state == "Printing"
+
+    def _diff_message(self) -> str:
+        diff_images = self.state.host.images != self.state.device.images
+        diff_scenes = self.state.host.scenes != self.state.device.scenes
+
+        rest = "seem to differ between Klipper and the device, use IMONK_SYNCHRONIZE to get them back in sync"
+        if diff_images and diff_scenes:
+            return "\nImages and Scenes " + rest
+        if diff_images:
+            return "\nImages " + rest
+        if diff_scenes:
+            return "\nScenes " + rest
+
+        return ""

@@ -5,10 +5,9 @@ from .scene import IMONKResourceScene
 
 if TYPE_CHECKING:
     from configfile import ConfigWrapper
-    from ..manager import IMONKManager
 
 
-def build_resource(config: ConfigWrapper, manager: IMONKManager):
+def build_resource(config: ConfigWrapper):
     _, kind, name = config.get_name().split(' ', maxsplit=3)
     kind = kind.lower()
 
@@ -16,9 +15,9 @@ def build_resource(config: ConfigWrapper, manager: IMONKManager):
         raise config.error(f'Invalid IMONK configuration entry, invalid resource name {name}')
 
     if 'image' == kind:
-        return IMONKResourceImage(config, name, manager)
+        return IMONKResourceImage(config, name)
     if 'scene' == kind:
-        return IMONKResourceScene(config, name, manager)
+        return IMONKResourceScene(config, name)
 
     raise config.error(f'Invalid IMONK configuration entry, unknown resource type {kind}')
 

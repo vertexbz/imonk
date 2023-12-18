@@ -7,7 +7,6 @@ from ..spi.crc import crc16_quick
 
 if TYPE_CHECKING:
     from configfile import ConfigWrapper
-    from ..manager import IMONKManager
 
 
 def validate_scene(scene: Union[dict, list]) -> None:
@@ -27,7 +26,7 @@ class Slot:
 
 
 class IMONKResourceScene:
-    def __init__(self, config: ConfigWrapper, name: str, manager: IMONKManager):
+    def __init__(self, config: ConfigWrapper, name: str):
         scene = literal_eval(config.get('scene'))
         if not isinstance(scene, (dict, list)):
             raise ConfigError(f'Invalid INMONK scene {name} configuration')
@@ -36,8 +35,6 @@ class IMONKResourceScene:
         self._data = normalize_scene(scene)
         self._crc = crc16_quick(self._data)
         self.name = name
-
-        manager.state.host.scenes[self.name] = self
 
     @property
     def crc(self) -> int:
@@ -53,3 +50,8 @@ class IMONKResourceScene:
 
     def get_slot(self, slot_name: str) -> Slot:
         raise ValueError(f'Unknown variable {slot_name}')
+
+    def __eq__(self, other):
+        if other == self.crc:
+            return True
+        return super().__eq__(other)
