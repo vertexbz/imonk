@@ -27,7 +27,7 @@ class IMONKManager:
         self.idle_timeout: IdleTimeout = self.printer.load_object(config, 'idle_timeout')
 
         if config.getboolean('synchronize', True):
-            self.printer.register_event_handler("klippy:connect", self.on_klippy_connect)
+            self.printer.register_event_handler("klippy:ready", self.on_klippy_ready)
 
         webhooks: WebHooks = self.printer.lookup_object('webhooks')
         webhooks.register_endpoint('imonk/version', self.handle_webhook_version)
@@ -88,11 +88,12 @@ class IMONKManager:
         self._load_resources(config)
 
 # Hooks
-    def on_klippy_connect(self):
-        command = self.gcode.create_gcode_command('', '', {})
+    def on_klippy_ready(self):
+        command = self.gcode.create_gcode_command('', '', {'QUIET': 1})
 
         self.cmd_IMONK_LOAD_DEVICE_STATE(command)
         self.cmd_IMONK_SYNCHRONIZE(command)
+        command.respond_info('IMONK Active')
 
     def get_status(self, *_) -> dict:
         return {
@@ -172,11 +173,16 @@ class IMONKManager:
             raise gcmd.error(f'Failed reloading IMONK configuration: {e}')
 
     def cmd_IMONK_LOAD_DEVICE_STATE(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
         self.api.images_manifest()
         self.api.scenes_manifest()
-        gcmd.respond_info('IMONK State loaded!' + self._diff_message())
+        if not quiet:
+            gcmd.respond_info('IMONK State loaded!' + self._diff_message())
 
     def cmd_IMONK_SYNCHRONIZE(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
         if self._is_printing():
             raise gcmd.error('Cannot synchronize IMONK while printing')
 
@@ -187,36 +193,43 @@ class IMONKManager:
             if diff:
                 raise gcmd.error(f'IMONK Scene {scene.name} references not existing images {diff}')
 
-        # TODO Fix logs at startup
         for name in self.state.device.images.keys():
             if name not in self.state.host.images:
-                gcmd.respond_info(f'IMONK Removed image {name} from device')
+                # self.api.remove_image(name) TODO
+                if not quiet:
+                    gcmd.respond_info(f'IMONK Removed unused image {name} from device')
 
         for name in self.state.device.scenes.keys():
             if name not in self.state.host.scenes:
-                gcmd.respond_info(f'IMONK Removed scene {name} from device')
+                # self.api.remove_scene(name) TODO
+                if not quiet:
+                    gcmd.respond_info(f'IMONK Removed unused scene {name} from device')
 
-        # for name, resource in self.state.host.scenes.items():
-        #     dev_crc = self.state.device.scenes.get(name, -1)
-        #     if dev_crc != resource.crc:
-        #         gcmd.respond_info(f'IMONK Scene CRC mismatch Host {resource.crc}, Device {dev_crc}')
-        #         self.api.upload_scene(name, resource.data)
-        #         if dev_crc == -1:
-        #             gcmd.respond_info(f'IMONK Uploaded scene {name}')
-        #         else:
-        #             gcmd.respond_info(f'IMONK Updated scene {name}')
+        for name, resource in self.state.host.scenes.items():
+            dev_crc = self.state.device.scenes.get(name, -1)
+            if dev_crc != resource.crc:
+                if not quiet:
+                    gcmd.respond_info(f'IMONK Scene CRC mismatch Host {resource.crc}, Device {dev_crc}')
+                # self.api.upload_scene(name, resource.data) TODO
+                if not quiet:
+                    if dev_crc == -1:
+                        gcmd.respond_info(f'IMONK Uploaded scene {name}')
+                    else:
+                        gcmd.respond_info(f'IMONK Updated scene {name}')
 
         for name, resource in self.state.host.images.items():
             dev_crc = self.state.device.images.get(name, -1)
             if dev_crc != resource.crc:
-                gcmd.respond_info(f'IMONK Image CRC mismatch Host {resource.crc}, Device {dev_crc}')
+                if not quiet:
+                    gcmd.respond_info(f'IMONK Image CRC mismatch Host {resource.crc}, Device {dev_crc}')
                 self.api.upload_image(name, resource.data)
-                if dev_crc == -1:
-                    gcmd.respond_info(f'IMONK Uploaded image {name}')
-                else:
-                    gcmd.respond_info(f'IMONK Updated image {name}')
-
-        gcmd.respond_info('IMONK Synchronized!')
+                if not quiet:
+                    if dev_crc == -1:
+                        gcmd.respond_info(f'IMONK Uploaded image {name}')
+                    else:
+                        gcmd.respond_info(f'IMONK Updated image {name}')
+        if not quiet:
+            gcmd.respond_info('IMONK Synchronized!')
 
 # Helpers
     def _load_resources(self, config: ConfigWrapper):
