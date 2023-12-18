@@ -16,6 +16,9 @@ class Interface final : protected Lib::SPI::Slave::Interface {
     Lib::SPI::Slave::FileUploadCommand *_upload_image = nullptr;
     Lib::SPI::Slave::FileUploadCommand *_upload_scene = nullptr;
     UpdateCommand *_update = nullptr;
+    Lib::SPI::Slave::InputCommand *_scene_init = nullptr;
+    Lib::SPI::Slave::InputCommand *_scene_commit = nullptr;
+    Lib::SPI::Slave::InputCommand *_scene_abort = nullptr;
 public:
     explicit Interface(Filesystem::Filesystem *fs);
 

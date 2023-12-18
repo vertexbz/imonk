@@ -42,7 +42,7 @@ class SPITransaction:
         if result not in (0xA5, 0xA4):
             raise CommunicationError(f'Write failed, response: {hex(result)[2:].upper().zfill(2)}.')
 
-    def write(self, data: bytes, var_len: bool = False, crc: bool = False) -> None:
+    def write(self, data: bytes, var_len: bool = False, crc: bool = False) -> int:
         last = 0
         crc_computed = 0xFFFF
 
@@ -76,6 +76,7 @@ class SPITransaction:
                 counter.inc()
 
             self.epilogue(crc_computed)
+            return crc_computed
 
     def write_segmented(self, data: bytes, crc: bool = False, segment_size: int = 16, block_size: int = 256,
                         delay_block: float = 0.05, delay_epilogue: float = 0.5) -> int:
@@ -121,11 +122,10 @@ class SPITransaction:
         sleep(0.5)
         return self.write_segmented(data, crc, delay_epilogue=1.)
 
-    def read_command(self, cmd: int, length: Optional[int] = None) -> bytes:
+    def read(self, length: Optional[int] = None, crc: bool = False) -> bytes:
         buf = bytearray()
         crc_buf = bytearray()
 
-        self.transfer(cmd)
         if length is None:
             length = self.read_word()
             crc_buf.extend(length.to_bytes(2, 'little'))
@@ -134,23 +134,28 @@ class SPITransaction:
             buf.append(self.transfer(0x00))
 
         # CRC
-        crc = self.read_word()
-        crc_buf.extend(buf)
-        crc_computed = crc16_quick(crc_buf)
-        if crc != crc_computed:
-            raise CRCError(crc_computed, crc)
+        if crc:
+            crc_received = self.read_word()
+            crc_buf.extend(buf)
+            crc_computed = crc16_quick(crc_buf)
+            if crc_received != crc_computed:
+                raise CRCError(crc_computed, crc_received)
 
         return bytes(buf)
+
+    def read_command(self, cmd: int, length: Optional[int] = None, crc: bool = False) -> bytes:
+        self.transfer(cmd)
+        return self.read(length, crc)
 
     def greedy_read_command(self, cmd: int) -> bytes:
         buf = bytearray()
         try:
             self.transfer(cmd)
             sleep(0.05)
-            initialResponse = self.transfer(0x00)
-            if initialResponse == 0x03:
+            initial_response = self.transfer(0x00)
+            if initial_response == 0x03:
                 raise StopReading()
-            if initialResponse != 0x00:
+            if initial_response != 0x00:
                 raise CommunicationError('Failed opening directory')
 
             while True:

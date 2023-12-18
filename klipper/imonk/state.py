@@ -1,24 +1,32 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .resource import IMONKResourceImage
     from .resource import IMONKResourceScene
 
 
+@dataclass
+class ScenesState:
+    current: Optional[tuple[int, IMONKResourceScene]] = None
+    staged: Optional[tuple[int, IMONKResourceScene]] = None
+
+
+@dataclass
 class DeviceState:
-    def __init__(self):
-        self.images: dict[str, int] = {}
-        self.scenes: dict[str, int] = {}
+    images: dict[str, int] = field(default_factory=dict)
+    scenes: dict[str, int] = field(default_factory=dict)
 
 
+@dataclass
 class HostState:
-    def __init__(self):
-        self.images: dict[str, IMONKResourceImage] = {}
-        self.scenes: dict[str, IMONKResourceScene] = {}
+    images: dict[str, IMONKResourceImage] = field(default_factory=dict)
+    scenes: dict[str, IMONKResourceScene] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
 class State:
-    def __init__(self):
-        self.device = DeviceState()
-        self.host = HostState()
+    device: DeviceState = field(default_factory=DeviceState)
+    host: HostState = field(default_factory=HostState)
+    scene: ScenesState = field(default_factory=ScenesState)
