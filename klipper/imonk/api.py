@@ -89,7 +89,7 @@ class API:
             raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type()}')
 
         slot_id = slot.get_id()
-        type_byte = self._type_id(value)
+        type_byte = slot.get_type_id()
 
         with self.spi as spi:
             spi.write_command(0x51, bytes([scene_id, slot_id, type_byte]), False, False)
@@ -113,19 +113,8 @@ class API:
             return self.state.scene.staged[1]
         raise ValueError(f'Invalid SID {scene_id}')
 
-    def _type_id(self, value) -> int:
-        if isinstance(value, str):
-            return 0x57
-        if isinstance(value, bool):
-            return 0x01
-        if isinstance(value, int):
-            return 0x69
-        if isinstance(value, float):
-            return 0x42
-
-        raise ValueError(f'Unsupported value type {type(value)}')
-
-    def _encode(self, value) -> bytes:
+    @staticmethod
+    def _encode(value) -> bytes:
         if isinstance(value, str):
             return value.encode('ascii')
         if isinstance(value, bool):

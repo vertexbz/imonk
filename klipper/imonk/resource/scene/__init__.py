@@ -1,22 +1,15 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from ast import literal_eval
 from json import dumps as to_json
 from configfile import error as ConfigError
-from ..spi.crc import crc16_quick
+from ...spi.crc import crc16_quick
 from .config import Scene as SceneConfig
 from .config.widget.image import ImageWidget
+from .slot import Slot
 
 if TYPE_CHECKING:
     from configfile import ConfigWrapper
-
-
-class Slot:
-    def get_type(self) -> type:
-        return int
-
-    def get_id(self) -> int:
-        return 1
 
 
 class IMONKResourceScene:
