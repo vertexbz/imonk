@@ -88,8 +88,12 @@ class API:
         if not isinstance(value, slot.get_type()):
             raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type()}')
 
+        slot_id = slot.get_id()
+        type_byte = self._type_id(value)
+
         with self.spi as spi:
-            spi.write_command(0x51, scene_id.to_bytes(1, 'little'), False, False)
+            spi.write_command(0x51, bytes([scene_id, slot_id, type_byte]), False, False)
+            spi.write(self._encode(value), isinstance(value, str), True)
 
     def scene_commit(self, scene_id: int) -> None:
         with self.spi as spi:
@@ -108,3 +112,27 @@ class API:
         if self.state.scene.staged is not None and scene_id == self.state.scene.staged[0]:
             return self.state.scene.staged[1]
         raise ValueError(f'Invalid SID {scene_id}')
+
+    def _type_id(self, value) -> int:
+        if isinstance(value, str):
+            return 0x57
+        if isinstance(value, bool):
+            return 0x01
+        if isinstance(value, int):
+            return 0x69
+        if isinstance(value, float):
+            return 0x42
+
+        raise ValueError(f'Unsupported value type {type(value)}')
+
+    def _encode(self, value) -> bytes:
+        if isinstance(value, str):
+            return value.encode('ascii')
+        if isinstance(value, bool):
+            return value.to_bytes(1, 'little')
+        if isinstance(value, int):
+            return value.to_bytes(4, 'little')
+        if isinstance(value, float):
+            return struct.pack('<f', value)
+
+        raise ValueError(f'Unsupported value type {type(value)}')

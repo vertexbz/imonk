@@ -1,0 +1,14 @@
+{
+  "background": "333333FF",
+  "widgets": [
+    {
+      "type": "gauge",
+      "x": 120,
+      "y": 120,
+      "r-end": 80,
+      "r-start": 60,
+      "color": "FF0000",
+      "background": "000000"
+    }
+  ]
+}

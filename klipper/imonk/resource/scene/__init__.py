@@ -4,17 +4,11 @@ from ast import literal_eval
 from json import dumps as to_json
 from configfile import error as ConfigError
 from ..spi.crc import crc16_quick
+from .config import Scene as SceneConfig
+from .config.widget.image import ImageWidget
 
 if TYPE_CHECKING:
     from configfile import ConfigWrapper
-
-
-def validate_scene(scene: Union[dict, list]) -> None:
-    pass
-
-
-def normalize_scene(scene: Union[dict, list]) -> bytes:
-    return to_json(scene).encode('ascii')
 
 
 class Slot:
@@ -27,12 +21,13 @@ class Slot:
 
 class IMONKResourceScene:
     def __init__(self, config: ConfigWrapper, name: str):
-        scene = literal_eval(config.get('scene'))
-        if not isinstance(scene, (dict, list)):
-            raise ConfigError(f'Invalid INMONK scene {name} configuration')
+        background = config.get('background')
+        widgets = literal_eval(config.get('widgets'))
+        if not isinstance(widgets, list):
+            raise ConfigError(f'Invalid IMONK scene {name} configuration')
 
-        validate_scene(scene)
-        self._data = normalize_scene(scene)
+        self._config = SceneConfig(background=background, widgets=widgets)
+        self._data = to_json(self._config.dump()).encode('ascii')
         self._crc = crc16_quick(self._data)
         self.name = name
 
@@ -46,7 +41,7 @@ class IMONKResourceScene:
 
     @property
     def used_images(self) -> set[str]:
-        return set()
+        return {w.name for w in self._config.widgets if isinstance(w, ImageWidget)}
 
     def get_slot(self, slot_name: str) -> Slot:
         raise ValueError(f'Unknown variable {slot_name}')
