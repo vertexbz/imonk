@@ -28,13 +28,13 @@ class Slot:
 
     @staticmethod
     def type_to_id(typ: type) -> int:
-        if isinstance(typ, str):
+        if issubclass(typ, str):
             return 0x57
-        if isinstance(typ, bool):
+        if issubclass(typ, bool):
             return 0x01
-        if isinstance(typ, int):
+        if issubclass(typ, int):
             return 0x69
-        if isinstance(typ, float):
+        if issubclass(typ, float):
             return 0x42
 
         raise ValueError(f'Unsupported type {typ}')
