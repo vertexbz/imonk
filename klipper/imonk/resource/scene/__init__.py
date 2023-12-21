@@ -24,6 +24,9 @@ class IMONKResourceScene:
         self._crc = crc16_quick(self._data)
         self.name = name
 
+        enumerated_slots = enumerate(slot for w in self._config.widgets for slot in w.get_slots())
+        self._slots = {name: Slot(id, typ, def_val) for (id, (name, typ, def_val)) in enumerated_slots}
+
     @property
     def crc(self) -> int:
         return self._crc
@@ -37,7 +40,7 @@ class IMONKResourceScene:
         return {w.name for w in self._config.widgets if isinstance(w, ImageWidget)}
 
     def get_slot(self, slot_name: str) -> Slot:
-        raise ValueError(f'Unknown variable {slot_name}')
+        raise self._slots.get(slot_name)
 
     def __eq__(self, other):
         if other == self.crc:

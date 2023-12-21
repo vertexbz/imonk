@@ -82,11 +82,14 @@ class API:
             self.state.scene.staged = (scene_id, self.state.host.scenes[name])
             return scene_id
 
-    def scene_set_value(self, scene_id: int, var_name: str, value: Union[str, float, int, bool]) -> None:
+    def scene_set_value(self, scene_id: int, var_name: str, value: Union[str, float, int, bool], force: bool = False) -> bool:
         scene = self._scene_by_id(scene_id)
         slot = scene.get_slot(var_name)
         if not isinstance(value, slot.get_type()):
             raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type()}')
+
+        if not force and slot.value == value:
+            return False
 
         slot_id = slot.get_id()
         type_byte = slot.get_type_id()
@@ -94,6 +97,9 @@ class API:
         with self.spi as spi:
             spi.write_command(0x51, bytes([scene_id, slot_id, type_byte]), False, False)
             spi.write(self._encode(value), isinstance(value, str), True)
+
+        slot.value = value
+        return True
 
     def scene_commit(self, scene_id: int) -> None:
         with self.spi as spi:

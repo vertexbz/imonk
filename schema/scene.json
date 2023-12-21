@@ -54,6 +54,11 @@
             "description": "Draws a Gauge widget in defined position",
             "additionalProperties": ["type", "x", "y"],
             "properties": {
+              "id": {
+                "title": "Identifier",
+                "description": "Identifier, used also as a variable name",
+                "type": "string"
+              },
               "color": {
                 "title": "Gauge fill color",
                 "$ref": "#/$defs/color"
@@ -71,6 +76,13 @@
                 "title": "End Radius",
                 "description": "Radius at which the gauge painting ends",
                 "type": "integer"
+              },
+              "value": {
+                "title": "Gauge default value",
+                "description": "Gauge value 0-100, Gauge value is by default available as a variable",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
               }
             }
           }

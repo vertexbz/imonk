@@ -5,10 +5,12 @@
       "type": "gauge",
       "x": 120,
       "y": 120,
+      "id": "progress",
       "r-end": 80,
       "r-start": 60,
       "color": "FF0000",
-      "background": "000000"
+      "background": "000000",
+      "value": 80
     }
   ]
 }

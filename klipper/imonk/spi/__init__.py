@@ -1,6 +1,7 @@
 from __future__ import annotations
 from time import sleep
 from typing import TYPE_CHECKING
+from typing import Optional
 from extras import bus
 from .transaction import SPITransaction
 
@@ -34,5 +35,5 @@ class SPI:
         self._switch_cs(True)
         return SPITransaction(self._spi)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[type], exc_val: Optional[Exception], exc_tb):
         self._switch_cs(False)
