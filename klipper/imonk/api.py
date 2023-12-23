@@ -77,7 +77,7 @@ class API:
     def scene_stage(self, name: str) -> int:
         with self.spi as spi:
             spi.write_command(0x50, name.encode('ascii'), True, False)
-            scene_id = spi.read(1, False)
+            scene_id = spi.read(1, True)
             spi.epilogue(0)
             self.state.scene.staged = (scene_id, self.state.host.scenes[name])
             return scene_id

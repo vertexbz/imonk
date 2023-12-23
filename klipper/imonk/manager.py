@@ -210,7 +210,7 @@ class IMONKManager:
             if dev_crc != resource.crc:
                 if not quiet:
                     gcmd.respond_info(f'IMONK Scene CRC mismatch Host {resource.crc}, Device {dev_crc}')
-                # self.api.upload_scene(name, resource.data) TODO
+                self.api.upload_scene(name, resource.data)
                 if not quiet:
                     if dev_crc == -1:
                         gcmd.respond_info(f'IMONK Uploaded scene {name}')
