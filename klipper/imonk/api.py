@@ -64,9 +64,9 @@ class API:
 
         return result
 
-    def upload_scene(self, name: str, data: str) -> int:
+    def upload_scene(self, name: str, data: bytes) -> int:
         with self.spi as spi:
-            crc = spi.upload_file_command(0x21, name, data.encode('ascii'), True)
+            crc = spi.upload_file_command(0x21, name, data, True)
             self.state.device.scenes[name] = crc
             return crc
 
