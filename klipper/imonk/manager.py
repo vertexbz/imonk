@@ -98,8 +98,8 @@ class IMONKManager:
     def get_status(self, *_) -> dict:
         return {
             'scene': {
-                'current': self.state.scene.current,
-                'staged': self.state.scene.staged
+                'current': (self.state.scene.current[0], self.state.scene.current[1].name) if self.state.scene.current else None,
+                'staged': (self.state.scene.staged[0], self.state.scene.staged[1].name) if self.state.scene.staged else None
             }
         }
 
@@ -133,7 +133,7 @@ class IMONKManager:
     def cmd_IMONK_STAGE_SCENE(self, gcmd: GCodeCommand):
         name = gcmd.get('NAME')
         scene_id = self.api.scene_stage(name)
-        gcmd.respond_info(f'IMONK staged scene {name} with SID={scene_id}')
+        gcmd.respond_info(f'IMONK staged scene \'{name}\' with SID={scene_id}')
 
     def cmd_IMONK_SET_VALUE(self, gcmd: GCodeCommand):
         sid = gcmd.get_int('SID')
@@ -157,7 +157,7 @@ class IMONKManager:
 
     def cmd_IMONK_ABORT_SCENE(self, gcmd: GCodeCommand):
         sid = gcmd.get_int('SID')
-        self.api.scene_commit(sid)
+        self.api.scene_abort(sid)
         gcmd.respond_info('IMONK aborted scene setup')
 
     def cmd_IMONK_REBOOT(self, gcmd: GCodeCommand):
@@ -175,9 +175,12 @@ class IMONKManager:
     def cmd_IMONK_LOAD_DEVICE_STATE(self, gcmd: GCodeCommand):
         quiet = gcmd.get_int('QUIET', 0) == 1
 
-        self.api.images_manifest()
-        self.api.scenes_manifest()
+        images = self.api.images_manifest()
         if not quiet:
+            gcmd.respond_info(f'IMONK Images: {images}')
+        scenes = self.api.scenes_manifest()
+        if not quiet:
+            gcmd.respond_info(f'IMONK Scenes: {scenes}')
             gcmd.respond_info('IMONK State loaded!' + self._diff_message())
 
     def cmd_IMONK_SYNCHRONIZE(self, gcmd: GCodeCommand):
