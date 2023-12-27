@@ -90,10 +90,12 @@ class IMONKManager:
 # Hooks
     def on_klippy_ready(self):
         command = self.gcode.create_gcode_command('', '', {'QUIET': 1})
-
-        self.cmd_IMONK_LOAD_DEVICE_STATE(command)
-        self.cmd_IMONK_SYNCHRONIZE(command)
-        command.respond_info('IMONK Active')
+        try:
+            self.cmd_IMONK_LOAD_DEVICE_STATE(command)
+            self.cmd_IMONK_SYNCHRONIZE(command)
+            command.respond_info('IMONK Active')
+        except:
+            command.respond_raw('!! IMONK Initialization failed')
 
     def get_status(self, *_) -> dict:
         return {
@@ -141,14 +143,16 @@ class IMONKManager:
         value = gcmd.get('VALUE')
         try:
             value = literal_eval(value)
-        except ValueError:
+        except (ValueError, SyntaxError):
             pass
 
         if not isinstance(value, (str, int, float, bool)):
             raise gcmd.error('Only string, integer, float and boolean values allowed')
 
-        self.api.scene_set_value(sid, slot, value)
-        gcmd.respond_info('IMONK scene value updated')
+        if self.api.scene_set_value(sid, slot, value):
+            gcmd.respond_info('IMONK scene value updated')
+        else:
+            gcmd.respond_info('IMONK scene value unchanged')
 
     def cmd_IMONK_COMMIT_SCENE(self, gcmd: GCodeCommand):
         sid = gcmd.get_int('SID')

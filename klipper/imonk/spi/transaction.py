@@ -1,11 +1,12 @@
 from __future__ import annotations
 from functools import cached_property
-from typing import Optional
+from typing import Optional, Union
 from typing import TYPE_CHECKING
 from time import sleep
 from extras import bus
 from .crc import crc16_quick, crc16_step
 from .error import CRCError, CommunicationError, UnexpectedResponse, ByteCounter, StopReading
+from .const import CRCOnlyLength
 
 if TYPE_CHECKING:
     from gcode import GCodeDispatch
@@ -42,7 +43,7 @@ class SPITransaction:
         if result not in (0xA5, 0xA4):
             raise CommunicationError(f'Write failed, response: {hex(result)[2:].upper().zfill(2)}.')
 
-    def write(self, data: bytes, var_len: bool = False, crc: bool = False) -> int:
+    def write(self, data: bytes, var_len: Union[bool, CRCOnlyLength] = False, crc: bool = False) -> int:
         last = 0
         crc_computed = 0xFFFF
 
@@ -50,9 +51,10 @@ class SPITransaction:
             if var_len:
                 with counter.sub('length') as l_counter:
                     for b in len(data).to_bytes(2, 'little'):
-                        if crc:
+                        if crc or var_len == CRCOnlyLength:
                             crc_computed = crc16_step(b, crc_computed)
-                            self.duplex_write(b, 0)
+                            if var_len != CRCOnlyLength:
+                                self.duplex_write(b, 0)
                         else:
                             last = self.duplex_write(b, last)
                         l_counter.inc()

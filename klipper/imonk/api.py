@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 import struct
+from .spi.const import CRCOnlyLength
 
 if TYPE_CHECKING:
     from .spi import SPI
@@ -85,7 +86,7 @@ class API:
         scene = self._scene_by_id(scene_id)
         slot = scene.get_slot(var_name)
         if not isinstance(value, slot.get_type()):
-            raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type()}')
+            raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type().__name__}')
 
         if not force and slot.value == value:
             return False
@@ -94,8 +95,10 @@ class API:
         type_byte = slot.get_type_id()
 
         with self.spi as spi:
-            spi.write_command(0x51, bytes([scene_id, slot_id, type_byte]), False, False)
-            spi.write(self._encode(value), isinstance(value, str), True)
+            spi.write_command(0x51, bytes([scene_id]), False, False)
+            spi.write(bytes([slot_id]), False, False)
+            spi.write(bytes([type_byte]), False, False)
+            spi.write(self._encode(value), isinstance(value, str) or CRCOnlyLength, True)
 
         slot.value = value
         return True
@@ -129,4 +132,4 @@ class API:
         if isinstance(value, float):
             return struct.pack('<f', value)
 
-        raise ValueError(f'Unsupported value type {type(value)}')
+        raise ValueError(f'Unsupported value type {type(value).__name__}')

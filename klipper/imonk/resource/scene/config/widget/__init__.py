@@ -2,12 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from .gauge import GaugeWidget
 from .image import ImageWidget
+from .string import StringWidget
 
 if TYPE_CHECKING:
     from .base import Widget
 
 
-WIDGETS = [GaugeWidget, ImageWidget]
+WIDGETS = [GaugeWidget, ImageWidget, StringWidget]
 
 
 def build_widget(kind: str, data: dict) -> Widget:

@@ -40,7 +40,7 @@ class IMONKResourceScene:
         return {w.name for w in self._config.widgets if isinstance(w, ImageWidget)}
 
     def get_slot(self, slot_name: str) -> Slot:
-        raise self._slots.get(slot_name)
+        return self._slots.get(slot_name)
 
     def __eq__(self, other):
         if other == self.crc:

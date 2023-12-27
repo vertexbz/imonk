@@ -8,8 +8,8 @@ from ..base import Base
 class Widget(Base):
     KIND = ""
 
-    x: int = 0
-    y: int = 0
+    x: int
+    y: int
 
     def _fields(self):
         yield 'type', type(self).KIND
