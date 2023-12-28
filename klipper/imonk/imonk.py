@@ -1,13 +1,14 @@
 from __future__ import annotations
+import logging
 from ast import literal_eval
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from os.path import expanduser
 from base64 import b64decode
 from .api import API
 from .spi import SPI
 from .state import State
-from .utils import with_error_handler
-from .resource import build_resource, IMONKResourceImage, IMONKResourceScene
+from .utils import with_error_handler, FunctionSmuggler, SmugglingDict
+from .resource import build_resource, IMONKResourceImage, IMONKResourceView
 from .mock.printer_config import PrinterConfig
 
 if TYPE_CHECKING:
@@ -18,8 +19,9 @@ if TYPE_CHECKING:
     from webhooks import WebHooks, WebRequest, ClientConnection
 
 
-class IMONKManager:
+class IMONK:
     def __init__(self, config: ConfigWrapper):
+        self.version: Optional[str] = None
         self.state = State()
         self.api = API(SPI(config), self.state)
 
@@ -45,24 +47,35 @@ class IMONKManager:
             desc='Update IMONK firmware'
         )
         self.gcode.register_command(
-            'IMONK_STAGE_SCENE',
-            with_error_handler(self.cmd_IMONK_STAGE_SCENE),
-            desc="Stages IMONK Scene for variables input and display"
+            'IMONK_STAGE_VIEW',
+            with_error_handler(self.cmd_IMONK_STAGE_VIEW),
+            desc="Stages IMONK View for variables input and display"
+        )
+        self.gcode.register_command(
+            'IMONK_STAGE_VIEW_IF_NEEDED',
+            with_error_handler(self.cmd_IMONK_STAGE_VIEW_IF_NEEDED),
+            desc="Stages IMONK View for variables input and display if not currently staged nor current"
+        )
+        self.gcode.register_command(
+            'IMONK_SET_VIEW',
+            with_error_handler(self.cmd_IMONK_SET_VIEW),
+            desc="Stages IMONK View for variables input and display if not currently staged nor current, "
+                 "sets provided values (use current or default if omitted), and displays it"
         )
         self.gcode.register_command(
             'IMONK_SET_VALUE',
             with_error_handler(self.cmd_IMONK_SET_VALUE),
-            desc="Set IMONK Scene variable value"
+            desc="Set IMONK View variable value"
         )
         self.gcode.register_command(
-            'IMONK_COMMIT_SCENE',
-            with_error_handler(self.cmd_IMONK_COMMIT_SCENE),
-            desc="Commits (displays) prepared IMONK Scene"
+            'IMONK_COMMIT_VIEW',
+            with_error_handler(self.cmd_IMONK_COMMIT_VIEW),
+            desc="Commits (displays) prepared IMONK View"
         )
         self.gcode.register_command(
-            'IMONK_ABORT_SCENE',
-            with_error_handler(self.cmd_IMONK_ABORT_SCENE),
-            desc="Aborts IMONK Scene preparation"
+            'IMONK_ABORT_VIEW',
+            with_error_handler(self.cmd_IMONK_ABORT_VIEW),
+            desc="Aborts IMONK View preparation"
         )
         self.gcode.register_command(
             'IMONK_REBOOT',
@@ -77,12 +90,12 @@ class IMONKManager:
         self.gcode.register_command(
             'IMONK_LOAD_DEVICE_STATE',
             with_error_handler(self.cmd_IMONK_LOAD_DEVICE_STATE),
-            desc='Load IMONK scenes and images from device'
+            desc='Load IMONK views and images from device'
         )
         self.gcode.register_command(
             'IMONK_SYNCHRONIZE',
             with_error_handler(self.cmd_IMONK_SYNCHRONIZE),
-            desc='Synchronize IMONK scenes and images'
+            desc='Synchronize IMONK views and images'
         )
 
         self._load_resources(config)
@@ -91,19 +104,30 @@ class IMONKManager:
     def on_klippy_ready(self):
         command = self.gcode.create_gcode_command('', '', {'QUIET': 1})
         try:
+            major, minor, micro = self.api.get_version()
             self.cmd_IMONK_LOAD_DEVICE_STATE(command)
             self.cmd_IMONK_SYNCHRONIZE(command)
+
+            self.version = f'{major}.{minor}.{micro}'
             command.respond_info('IMONK Active')
-        except:
+        except self.gcode.error as e:
+            command.respond_info(str(e))
+            command.respond_raw('!! IMONK Initialization failed')
+        except Exception as e:
+            logging.exception(str(e))
             command.respond_raw('!! IMONK Initialization failed')
 
     def get_status(self, *_) -> dict:
-        return {
-            'scene': {
-                'current': (self.state.scene.current[0], self.state.scene.current[1].name) if self.state.scene.current else None,
-                'staged': (self.state.scene.staged[0], self.state.scene.staged[1].name) if self.state.scene.staged else None
-            }
-        }
+        return SmugglingDict({
+            'version': self.version,
+            'view': {
+                'current': self._get_view_state(self.state.view.current),
+                'staged': self._get_view_state(self.state.view.staged)
+            },
+            'stage': FunctionSmuggler(self.api.view_stage),
+            'stage_if_needed': FunctionSmuggler(self._stage_if_needed),
+            'set_view': FunctionSmuggler(self._set_view)
+        })
 
 # Webhooks
     def handle_webhook_version(self, web_request: WebRequest):
@@ -132,41 +156,84 @@ class IMONKManager:
             self.api.update_firmware(f.read())
             gcmd.respond_info('Firmware update continues on the device')
 
-    def cmd_IMONK_STAGE_SCENE(self, gcmd: GCodeCommand):
+    def cmd_IMONK_STAGE_VIEW(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
         name = gcmd.get('NAME')
-        scene_id = self.api.scene_stage(name)
-        gcmd.respond_info(f'IMONK staged scene \'{name}\' with SID={scene_id}')
+        view_id = self.api.view_stage(name)
+        if not quiet:
+            gcmd.respond_info(f'IMONK staged view \'{name}\' with SID={view_id}')
+
+    def cmd_IMONK_STAGE_VIEW_IF_NEEDED(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
+        name = gcmd.get('NAME')
+        old_staged_id = self.state.view.staged[0] if self.state.view.staged else None
+        view_id, is_current = self._stage_if_needed(name)
+        if not quiet:
+            if is_current:
+                gcmd.respond_info(f'IMONK view \'{name}\' is current with SID={view_id}')
+            elif view_id == old_staged_id:
+                gcmd.respond_info(f'IMONK view \'{name}\' already staged with SID={view_id}')
+            else:
+                gcmd.respond_info(f'IMONK staged view \'{name}\' with SID={view_id}')
+
+    def cmd_IMONK_SET_VIEW(self, gcmd: GCodeCommand):
+        parameters = gcmd.get_command_parameters().copy()
+        quiet = int(parameters.pop('QUIET', 0)) == 1
+
+        name = parameters.pop('NAME')
+        data = {}
+
+        for p, v in parameters.items():
+            if not p.startswith("SLOT_"):
+                continue
+
+            data[p[5:].lower()] = self._parse_value(v)
+
+        view_id = self._set_view(name, data)
+        if not quiet:
+            gcmd.respond_info(f'IMONK view \'{name}\' set with SID={view_id}')
 
     def cmd_IMONK_SET_VALUE(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
         sid = gcmd.get_int('SID')
         slot = gcmd.get('SLOT')
-        value = gcmd.get('VALUE')
-        try:
-            value = literal_eval(value)
-        except (ValueError, SyntaxError):
-            pass
+        value = self._parse_value(gcmd.get('VALUE'))
 
         if not isinstance(value, (str, int, float, bool)):
             raise gcmd.error('Only string, integer, float and boolean values allowed')
 
-        if self.api.scene_set_value(sid, slot, value):
-            gcmd.respond_info('IMONK scene value updated')
-        else:
-            gcmd.respond_info('IMONK scene value unchanged')
+        result = self.api.view_set_value(sid, slot, value)
+        if not quiet:
+            if result:
+                gcmd.respond_info('IMONK view value updated')
+            else:
+                gcmd.respond_info('IMONK view value unchanged')
 
-    def cmd_IMONK_COMMIT_SCENE(self, gcmd: GCodeCommand):
-        sid = gcmd.get_int('SID')
-        self.api.scene_commit(sid)
-        gcmd.respond_info('IMONK committed scene')
+    def cmd_IMONK_COMMIT_VIEW(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
 
-    def cmd_IMONK_ABORT_SCENE(self, gcmd: GCodeCommand):
         sid = gcmd.get_int('SID')
-        self.api.scene_abort(sid)
-        gcmd.respond_info('IMONK aborted scene setup')
+        self.api.view_commit(sid)
+        if not quiet:
+            gcmd.respond_info('IMONK committed view')
+
+    def cmd_IMONK_ABORT_VIEW(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
+        sid = gcmd.get_int('SID')
+        self.api.view_abort(sid)
+        if not quiet:
+            gcmd.respond_info('IMONK aborted view setup')
 
     def cmd_IMONK_REBOOT(self, gcmd: GCodeCommand):
+        quiet = gcmd.get_int('QUIET', 0) == 1
+
         self.api.reboot()
-        gcmd.respond_info('Rebooting IMONK')
+        if not quiet:
+            gcmd.respond_info('Rebooting IMONK')
 
     def cmd_IMONK_RELOAD_CONFIG(self, gcmd: GCodeCommand):
         try:
@@ -182,9 +249,9 @@ class IMONKManager:
         images = self.api.images_manifest()
         if not quiet:
             gcmd.respond_info(f'IMONK Images: {images}')
-        scenes = self.api.scenes_manifest()
+        views = self.api.views_manifest()
         if not quiet:
-            gcmd.respond_info(f'IMONK Scenes: {scenes}')
+            gcmd.respond_info(f'IMONK Views: {views}')
             gcmd.respond_info('IMONK State loaded!' + self._diff_message())
 
     def cmd_IMONK_SYNCHRONIZE(self, gcmd: GCodeCommand):
@@ -195,34 +262,34 @@ class IMONKManager:
 
         known_images = set(self.state.host.images.keys())
 
-        for scene in self.state.host.scenes.values():
-            diff = scene.used_images.difference(known_images)
+        for view in self.state.host.views.values():
+            diff = view.used_images.difference(known_images)
             if diff:
-                raise gcmd.error(f'IMONK Scene {scene.name} references not existing images {diff}')
+                raise gcmd.error(f'IMONK View {view.name} references not existing images {diff}')
 
         for name in self.state.device.images.keys():
             if name not in self.state.host.images:
-                # self.api.remove_image(name) TODO
+                self.api.remove_image(name)
                 if not quiet:
                     gcmd.respond_info(f'IMONK Removed unused image {name} from device')
 
-        for name in self.state.device.scenes.keys():
-            if name not in self.state.host.scenes:
-                # self.api.remove_scene(name) TODO
+        for name in self.state.device.views.keys():
+            if name not in self.state.host.views:
+                self.api.remove_view(name)
                 if not quiet:
-                    gcmd.respond_info(f'IMONK Removed unused scene {name} from device')
+                    gcmd.respond_info(f'IMONK Removed unused view {name} from device')
 
-        for name, resource in self.state.host.scenes.items():
-            dev_crc = self.state.device.scenes.get(name, -1)
+        for name, resource in self.state.host.views.items():
+            dev_crc = self.state.device.views.get(name, -1)
             if dev_crc != resource.crc:
                 if not quiet:
-                    gcmd.respond_info(f'IMONK Scene CRC mismatch Host {resource.crc}, Device {dev_crc}')
-                self.api.upload_scene(name, resource.data)
+                    gcmd.respond_info(f'IMONK View CRC mismatch Host {resource.crc}, Device {dev_crc}')
+                self.api.upload_view(name, resource.data)
                 if not quiet:
                     if dev_crc == -1:
-                        gcmd.respond_info(f'IMONK Uploaded scene {name}')
+                        gcmd.respond_info(f'IMONK Uploaded view {name}')
                     else:
-                        gcmd.respond_info(f'IMONK Updated scene {name}')
+                        gcmd.respond_info(f'IMONK Updated view {name}')
 
         for name, resource in self.state.host.images.items():
             dev_crc = self.state.device.images.get(name, -1)
@@ -241,32 +308,62 @@ class IMONKManager:
 # Helpers
     def _load_resources(self, config: ConfigWrapper):
         images = {}
-        scenes = {}
+        views = {}
         for section in config.get_prefix_sections('imonk '):
             resource = build_resource(section)
             if isinstance(resource, IMONKResourceImage):
                 images[resource.name] = resource
-            elif isinstance(resource, IMONKResourceScene):
-                scenes[resource.name] = resource
+            elif isinstance(resource, IMONKResourceView):
+                views[resource.name] = resource
             else:
                 raise ValueError(f'Unknown resource type {type(resource)}')
 
         self.state.host.images = images
-        self.state.host.scenes = scenes
+        self.state.host.views = views
 
     def _is_printing(self) -> bool:
         return self.idle_timeout.state == "Printing"
 
     def _diff_message(self) -> str:
         diff_images = self.state.host.images != self.state.device.images
-        diff_scenes = self.state.host.scenes != self.state.device.scenes
+        diff_views = self.state.host.views != self.state.device.views
 
         rest = "seem to differ between Klipper and the device, use IMONK_SYNCHRONIZE to get them back in sync"
-        if diff_images and diff_scenes:
-            return "\nImages and Scenes " + rest
+        if diff_images and diff_views:
+            return "\nImages and Views " + rest
         if diff_images:
             return "\nImages " + rest
-        if diff_scenes:
-            return "\nScenes " + rest
+        if diff_views:
+            return "\nViews " + rest
 
         return ""
+
+    def _parse_value(self, value):
+        try:
+            value = literal_eval(value)
+        except (ValueError, SyntaxError):
+            pass
+        return value
+
+    def _get_view_state(self, view):
+        return (view[0], view[1].name) if view is not None else None
+
+    def _stage_if_needed(self, name: str) -> tuple[int, bool]:
+        if self.state.view.current and self.state.view.current[1].name == name:
+            return self.state.view.current[0], True
+
+        if self.state.view.staged and self.state.view.staged[1].name == name:
+            return self.state.view.staged[0], False
+
+        return self.api.view_stage(name), False
+
+    def _set_view(self, name: str, data: dict):
+        view_id, committed = self._stage_if_needed(name)
+
+        for key, value in data.items():
+            self.api.view_set_value(view_id, key, value)
+
+        if not committed:
+            self.api.view_commit(view_id)
+
+        return view_id

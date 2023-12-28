@@ -10,6 +10,6 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Scene(Base):
+class View(Base):
     background: str = ColorField()
     widgets: list[Widget] = WidgetsField()

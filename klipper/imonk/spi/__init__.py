@@ -29,7 +29,7 @@ class SPI:
     def _switch_cs(self, active: bool):
         print_time = self._cs.get_mcu().estimated_print_time(self.printer.reactor.monotonic())
         self._cs.set_digital(print_time + 0.001, 0 if active else 1)
-        sleep(0.005)  # TODO
+        sleep(0.005)  # TODO - should not this
 
     def __enter__(self):
         self._switch_cs(True)

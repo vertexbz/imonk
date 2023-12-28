@@ -6,7 +6,7 @@ from .spi.const import CRCOnlyLength
 if TYPE_CHECKING:
     from .spi import SPI
     from .state import State
-    from .resource import IMONKResourceScene
+    from .resource import IMONKResourceView
 
 
 class API:
@@ -47,12 +47,12 @@ class API:
             self.state.device.images[name] = crc
             return crc
 
-    def remove_scene(self, name: str) -> None:
+    def remove_view(self, name: str) -> None:
         with self.spi as spi:
             spi.write_command(0x20, name.encode('ascii'), True, True)
-            del self.state.device.scenes[name]
+            del self.state.device.views[name]
 
-    def scenes_manifest(self) -> dict:
+    def views_manifest(self) -> dict:
         result = dict()
         with self.spi as spi:
             buf = spi.greedy_read_command(0x22)
@@ -61,32 +61,32 @@ class API:
                 name, buf = buf[2:].split(b'\x00', maxsplit=1)
                 result[name.decode('ascii')] = checksum
 
-            self.state.device.scenes = result
+            self.state.device.views = result
 
         return result
 
-    def upload_scene(self, name: str, data: bytes) -> int:
+    def upload_view(self, name: str, data: bytes) -> int:
         with self.spi as spi:
             crc = spi.upload_file_command(0x21, name, data, True)
-            self.state.device.scenes[name] = crc
+            self.state.device.views[name] = crc
             return crc
 
     def reboot(self) -> None:
         with self.spi as spi:
             spi.exec_command(0x0F)
 
-    def scene_stage(self, name: str) -> int:
+    def view_stage(self, name: str) -> int:
         with self.spi as spi:
             spi.write_command(0x50, name.encode('ascii'), True, False)
-            scene_id = spi.read(1, True)[0]
-            self.state.scene.staged = (scene_id, self.state.host.scenes[name])
-            return scene_id
+            view_id = spi.read(1, True)[0]
+            self.state.view.staged = (view_id, self.state.host.views[name])
+            return view_id
 
-    def scene_set_value(self, scene_id: int, var_name: str, value: Union[str, float, int, bool], force: bool = False) -> bool:
-        scene = self._scene_by_id(scene_id)
-        slot = scene.get_slot(var_name)
+    def view_set_value(self, view_id: int, var_name: str, value: Union[str, float, int, bool], force: bool = False) -> bool:
+        view = self._view_by_id(view_id)
+        slot = view.get_slot(var_name)
         if not isinstance(value, slot.get_type()):
-            raise ValueError(f'Scene {scene.name} variable {var_name} should be of type {slot.get_type().__name__}')
+            raise ValueError(f'View {view.name} variable {var_name} should be of type {slot.get_type().__name__}')
 
         if not force and slot.value == value:
             return False
@@ -95,7 +95,7 @@ class API:
         type_byte = slot.get_type_id()
 
         with self.spi as spi:
-            spi.write_command(0x51, bytes([scene_id]), False, False)
+            spi.write_command(0x51, bytes([view_id]), False, False)
             spi.write(bytes([slot_id]), False, False)
             spi.write(bytes([type_byte]), False, False)
             spi.write(self._encode(value), isinstance(value, str) or CRCOnlyLength, True)
@@ -103,23 +103,23 @@ class API:
         slot.value = value
         return True
 
-    def scene_commit(self, scene_id: int) -> None:
+    def view_commit(self, view_id: int) -> None:
         with self.spi as spi:
-            spi.write_command(0x5E, scene_id.to_bytes(1, 'little'), False, False)
-            self.state.scene.current = self.state.scene.staged
-            self.state.scene.staged = None
+            spi.write_command(0x5E, view_id.to_bytes(1, 'little'), False, False)
+            self.state.view.current = self.state.view.staged
+            self.state.view.staged = None
 
-    def scene_abort(self, scene_id: int) -> None:
+    def view_abort(self, view_id: int) -> None:
         with self.spi as spi:
-            spi.write_command(0x5F, scene_id.to_bytes(1, 'little'), False, False)
-            self.state.scene.staged = None
+            spi.write_command(0x5F, view_id.to_bytes(1, 'little'), False, False)
+            self.state.view.staged = None
 
-    def _scene_by_id(self, scene_id: int) -> IMONKResourceScene:
-        if self.state.scene.current is not None and scene_id == self.state.scene.current[0]:
-            return self.state.scene.current[1]
-        if self.state.scene.staged is not None and scene_id == self.state.scene.staged[0]:
-            return self.state.scene.staged[1]
-        raise ValueError(f'Invalid SID {scene_id}')
+    def _view_by_id(self, view_id: int) -> IMONKResourceView:
+        if self.state.view.current is not None and view_id == self.state.view.current[0]:
+            return self.state.view.current[1]
+        if self.state.view.staged is not None and view_id == self.state.view.staged[0]:
+            return self.state.view.staged[1]
+        raise ValueError(f'Invalid SID {view_id}')
 
     @staticmethod
     def _encode(value) -> bytes:
