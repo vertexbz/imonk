@@ -1,0 +1,13 @@
+{
+  "background": "00FF00",
+  "widgets": [
+    {
+      "type": "string",
+      "x": 120,
+      "y": 120,
+      "id": "t1",
+      "color": "FF0000",
+      "value": "Klipper test"
+    }
+  ]
+}

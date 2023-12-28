@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/product.schema.json",
-  "title": "IMONK Scene",
-  "description": "Defines scenes widgets",
+  "title": "IMONK View",
+  "description": "Defines views widgets",
   "type": "object",
   "additionalProperties": false,
   "required": ["background", "widgets"],
@@ -13,7 +13,7 @@
     },
     "widgets": {
       "title": "Widgets",
-      "description": "List of widgets to render on scene",
+      "description": "List of widgets to render on view",
       "type": "array",
       "minItems": 1,
       "items": {
