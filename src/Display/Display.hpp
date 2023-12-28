@@ -5,7 +5,7 @@
 #include "Sprite.hpp"
 
 namespace Display {
-    class Scene;
+    class View;
 
     class Display final : private LGFX_GC9A01, public Painter {
         friend class Sprite;
@@ -16,7 +16,7 @@ namespace Display {
 
         bool begin();
 
-        void render(Scene *scene);
+        void render(View *view);
 
 #pragma mark Painter - Info
 

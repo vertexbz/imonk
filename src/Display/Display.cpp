@@ -4,7 +4,7 @@
 
 #include "Display.hpp"
 #include "Sprite.hpp"
-#include "Scene.hpp"
+#include "View.hpp"
 
 Display::Display::Display(): LGFX_GC9A01(), Painter(), _canvas(width(), height()) {
 }
@@ -18,16 +18,16 @@ bool Display::Display::begin() {
     return false;
 }
 
-void Display::Display::render(Scene *scene) {
+void Display::Display::render(View *view) {
 //    LGFX_GC9A01::beginTransaction();
     LGFX_GC9A01::startWrite();
 
-//    _canvas.fillScreen(scene->background());
-//    LGFX_GC9A01::clearDisplay(scene->background());
-//    LGFX_GC9A01::setColor(scene->background());
+//    _canvas.fillScreen(view->background());
+//    LGFX_GC9A01::clearDisplay(view->background());
+//    LGFX_GC9A01::setColor(view->background());
 //    LGFX_GC9A01::writeFillRectPreclipped(0,0,width(), height());
-//    scene->render(&_canvas);
-    scene->render(this);
+//    view->render(&_canvas);
+    view->render(this);
 
 //    LGFX_GC9A01::startWrite();
 //    renderSprite(&_canvas, 0, 0);

@@ -7,7 +7,7 @@ class StageManager;
 namespace Display {
     class Painter;
 
-    class Scene {
+    class View {
         StageManager *_manager = nullptr;
     protected:
         virtual void _init() {};
@@ -15,6 +15,6 @@ namespace Display {
         void init(StageManager *manager) { _manager = manager; _init(); };
         virtual Color background() { return 0x000000; };
         virtual void render(Painter *) = 0;
-        virtual ~Scene() = default;
+        virtual ~View() = default;
     };
 }

@@ -7,13 +7,16 @@
 #include "Gauge.hpp"
 
 Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color)
-: Gauge(x, y, radius, thickness, color, 90) {}
+: Gauge(x, y, radius, thickness, color, 0x000000) {}
 
-Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, float rotation)
-: Gauge(x, y, radius, thickness, color, rotation, 260) {}
+Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background)
+: Gauge(x, y, radius, thickness, color, background, 90) {}
 
-Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, float rotation, float gaugeArc)
-: Display::Sprite(radius * 2 + 2, radius * 2 + 2) {
+Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background, float rotation)
+: Gauge(x, y, radius, thickness, color, background, rotation, 260) {}
+
+Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background, float rotation, float gaugeArc)
+: Sprite(radius * 2 + 2, radius * 2 + 2) {
     _percentage = 0;
 
     _y = y;
@@ -21,6 +24,7 @@ Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Dis
     _r = radius;
     _thickness = thickness;
     _color = color;
+    _background = background;
     _rotation = rotation;
     _gaugeArc = gaugeArc;
 
@@ -28,11 +32,26 @@ Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Dis
     _angleRendered = rotate(0);
 }
 
+std::unique_ptr<Widget::BaseWidget> Widget::Gauge::clone() {
+    auto gauge = std::make_unique<Gauge>(_x, _y, _r, _thickness, _color, _rotation, _gaugeArc);
+    gauge->setPercent(_percentage);
+    return std::move(gauge);
+}
+
+void Widget::Gauge::setValue(TypeId type, void *data) {
+    setPercent(*static_cast<int32_t*>(data));
+}
+
+Widget::BaseWidget::TypeId Widget::Gauge::typeId() {
+    return TypeId::INTEGER;
+}
+
 void Widget::Gauge::init() {
+    BaseWidget::init();
     Sprite::init();
     setColorDepth(Display::ColorDepth::grayscale_2bit);
     setPaletteColor(0, (_color & 0x010101) == 0x010101 ?  (_color & ~0x010101) : (_color | 0x010101));
-    setPaletteColor(1, 0x000000);
+    setPaletteColor(1, _background);
     setPaletteColor(2, _color);
 
     setPivot(0,0);
@@ -52,7 +71,7 @@ void Widget::Gauge::setPercent(Gauge::Percentage percentage) {
     _percentage = percentage;
 }
 
-void Widget::Gauge::render(Display::Painter *painter) {
+void Widget::Gauge::render(Painter *painter) {
     if (_angleRendered == _angle) {
         return;
     }

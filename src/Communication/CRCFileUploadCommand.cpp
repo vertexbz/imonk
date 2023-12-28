@@ -6,8 +6,14 @@
 
 #include <Filesystem/UploadFile.hpp>
 
-Communication::CRCFileUploadCommand::CRCFileUploadCommand(ID id, Filesystem::Filesystem *fs, const char *basepath): FileUploadCommand(id, fs, basepath) {
+Communication::CRCFileUploadCommand::CRCFileUploadCommand(const ID id, Filesystem::Filesystem *fs, const char *basepath)
+: FileUploadCommand(id, fs, basepath) {
     _fs.callback([this](Lib::SPI::Slave::Contract::FS::File *file) {
         static_cast<Filesystem::UploadFile*>(file)->setCRC(crc());
+        if (_callback) _callback(static_cast<Filesystem::UploadFile*>(file));
     });
+}
+
+void Communication::CRCFileUploadCommand::callback(const Callback &callback) {
+    _callback = callback;
 }

@@ -10,9 +10,9 @@ public:
     static constexpr auto *_IMAGES_ = "/images/";
     static constexpr auto *_IMAGES = "/images";
     static constexpr auto *IMAGES = "images";
-    static constexpr auto *_SCENES_ = "/scenes/";
-    static constexpr auto *_SCENES = "/scenes";
-    static constexpr auto* SCENES = "scenes";
+    static constexpr auto *_VIEWS_ = "/scenes/";
+    static constexpr auto *_VIEWS = "/scenes";
+    static constexpr auto* VIEWS = "scenes";
 
     static size_t getFlashSize();
 

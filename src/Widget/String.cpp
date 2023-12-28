@@ -17,6 +17,20 @@ Widget::String::String(Display::Unit x, Display::Unit y, Display::Align align, D
     _lastLength = 0;
 }
 
+std::unique_ptr<Widget::BaseWidget> Widget::String::clone() {
+    auto string = std::make_unique<String>(_x, _y, _align, _color, _font);
+    string->setString(static_cast<const ::String &>(_string));
+    return std::move(string);
+}
+
+void Widget::String::setValue(TypeId type, void *data) {
+    setString(static_cast<char*>(data));
+}
+
+Widget::BaseWidget::TypeId Widget::String::typeId() {
+    return TypeId::STRING;
+}
+
 void Widget::String::render(Display::Painter *painter) {
     if (_rendered) {
         return;

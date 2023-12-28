@@ -11,7 +11,7 @@ namespace Display {
 
     typedef lgfx::DataWrapper File;
     typedef int32_t Unit;
-    typedef lgfx::IFont Font;
+    typedef lgfx::v1::IFont Font;
     namespace Fonts = fonts;
 
     enum class Align2D : uint8_t {
@@ -40,10 +40,10 @@ namespace Display {
 
     enum class ColorDepth : uint16_t
     {
-        bit_mask     = 0x00FF   , /// ビット数取得用マスク値 (下位1Byteはビット数表現専用とする。変更しないこと);
-        has_palette  = 0x0800   , /// パレット値として扱う;
-        nonswapped   = 0x0100   , /// バイトスワップしていない値;
-        alternate    = 0x1000   , /// ビット数が同一な色表現が複数ある場合の相違表現用;
+        bit_mask     = 0x00FF   , /// Mask value for bit number acquisition (lower 1 byte is used only to represent bit number. Do not change);
+        has_palette  = 0x0800   , /// Treat as a palette color index;
+        nonswapped   = 0x0100   , /// non-byte-swapped
+        alternate    = 0x1000   , /// For different expressions when there are multiple color expressions with the same number of bits;
 
         grayscale_1bit      =   1                         , //                            _______L
         grayscale_2bit      =   2                         , //                            ______LL

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../Display/types.hpp"
-#include "../Display/Widget.hpp"
+#include "_widget_.hpp"
 #include "../Display/Sprite.hpp"
 
 namespace Widget {
-    class Gauge : public Display::Widget, protected Display::Sprite {
+    class Gauge : public BaseWidget, protected Display::Sprite {
     public:
         typedef uint8_t Percentage;
     protected:
@@ -16,6 +15,7 @@ namespace Widget {
         Display::Unit _thickness;
 
         Display::Color _color;
+        Display::Color _background;
 
         float _rotation;
         float _gaugeArc;
@@ -32,14 +32,21 @@ namespace Widget {
     public:
         Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color);
 
-        Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, float rotation);
+        Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background);
 
-        Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, float rotation, float gaugeArc);
+        Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background, float rotation);
+
+        Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Display::Unit thickness, Display::Color color, Display::Color background, float rotation, float gaugeArc);
 
         void init() override;
 
-        void render(Display::Painter *) override;
+        void render(Painter *) override;
 
         void setPercent(Percentage percentage);
+
+        std::unique_ptr<BaseWidget> clone() override;
+        void setValue(TypeId type, void *data) override;
+
+        TypeId typeId() override;
     };
 }

@@ -35,7 +35,7 @@ wchar Display::Util::UTF8Decoder::decode(const char c) {
     {
         if (_decoderState == 2)
         {
-            _unicode_buffer |= ((c & 0x3F)<<6);
+            _unicode_buffer |= (c & 0x3F)<<6;
             _decoderState = 1;
             return 0;
         }
@@ -88,4 +88,47 @@ Display::Unit Display::Util::textWidth(const char *string, const Display::Font *
         left += sxadvance;
     } while (*(++string));
     return right;
+}
+
+Display::Color Display::Util::strtorgb(const char *str) {
+    Color c = 0;
+    for (uint8_t i = 0; i < 6 && *str > 0; ++i, ++str) {
+        c <<= 4;
+        if (*str >= '0' && *str <= '9') {
+            c |= *str - '0';
+        } else if (*str >= 'A' && *str <= 'F') {
+            c |= 10 + *str - 'A';
+        } else if (*str >= 'a' && *str <= 'f') {
+            c |= 10 + *str - 'a';
+        }
+    }
+    return c;
+}
+
+Display::Align Display::Util::strtoalign(const char *str) {
+    if (strcmp(str, "left") == 0) {
+        return Align::Left;
+    }
+    if (strcmp(str, "right") == 0) {
+        return Align::Right;
+    }
+    return Align::Center;
+}
+
+#define fnt(f) const_cast<std::remove_const_t<decltype(f)>*>(&f);
+#define fnt_if(name, f) if (strcmp(str, name) == 0) return fnt(f);
+Display::Font * Display::Util::strtofont(const char *str) {
+    fnt_if("font0", Font0);
+    fnt_if("font2", Font2);
+    fnt_if("font4", Font4);
+    fnt_if("font6", Font6);
+    fnt_if("font7", Font7);
+    fnt_if("font8", Font8);
+    fnt_if("font8c64", Font8x8C64);
+    fnt_if("ascii8", AsciiFont8x16);
+    fnt_if("ascii24", AsciiFont24x48);
+    fnt_if("orbitron24", Orbitron_Light_24);
+    fnt_if("orbitron32", Orbitron_Light_32);
+    fnt_if("roboto24", Roboto_Thin_24);
+    return fnt(Font0);
 }

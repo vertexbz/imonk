@@ -76,9 +76,9 @@ path: ~/smily-face.png
 _Can appear multiple times, each section defines one image that can be identified by name provided in section brackets. Images are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
 
-**Scene configuration**
+**View configuration**
 ```ini
-[imonk scene test-gauge]
+[imonk view test-gauge]
 background: 333333
 widgets: [
     {
@@ -95,7 +95,7 @@ widgets: [
       "arc"
     }
   ]
-[imonk scene test-text]
+[imonk view test-text]
 background: 333333
 widgets: [
     {
@@ -109,7 +109,7 @@ widgets: [
         "font"
     }
   ]
-[imonk scene test-images]
+[imonk view test-images]
 background: 333333
 widgets: [
     {
@@ -136,7 +136,7 @@ widgets: [
     }
   ]
 ```
-_Can appear multiple times, each section defines one scene that can be identified by name provided in section brackets. Scenes are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
+_Can appear multiple times, each section defines one view that can be identified by name provided in section brackets. Views are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
 #### Klipper commands
 Checking
@@ -161,6 +161,6 @@ gcode:
     {% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
     
     {% if not is_current %}
-        IMONK_COMMIT_SCENE SID={stage_id}
+        IMONK_COMMIT_VIEW SID={stage_id}
     {% endif %}
 ```

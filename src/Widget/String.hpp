@@ -1,10 +1,10 @@
 #pragma once
-#include "../Display/Widget.hpp"
-#include "../Display/types.hpp"
+
+#include "_widget_.hpp"
 #include <StreamString.h>
 
 namespace Widget {
-    class String : public Display::Widget {
+    class String : public BaseWidget {
     protected:
         Display::Unit _x;
         Display::Unit _y;
@@ -22,5 +22,11 @@ namespace Widget {
         void setString(::String &string);
         void setString(const ::String &string);
         void render(Display::Painter *) override;
+
+        std::unique_ptr<BaseWidget> clone() override;
+
+        void setValue(TypeId type, void *data) override;
+
+        TypeId typeId() override;
     };
 }

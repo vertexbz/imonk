@@ -30,15 +30,15 @@ void Filesystem::Filesystem::begin() {
     }
 
     bool hasImgs = false;
-    bool hasScenes = false;
+    bool hasViews = false;
 
     auto dir = openDir("/");
     while (dir.next()) {
         if (dir.isDirectory()) {
             if (dir.fileName().equals(IMAGES)) {
                 hasImgs = true;
-            } else if (dir.fileName().equals(SCENES)) {
-                hasScenes = true;
+            } else if (dir.fileName().equals(VIEWS)) {
+                hasViews = true;
             } else {
                 rmdir(String("/") + dir.fileName());
             }
@@ -50,17 +50,13 @@ void Filesystem::Filesystem::begin() {
     if (!hasImgs) {
         mkdir(_IMAGES);
     }
-    if (!hasScenes) {
-        mkdir(_SCENES);
+    if (!hasViews) {
+        mkdir(_VIEWS);
     }
 }
 
 Filesystem::File Filesystem::Filesystem::open(const String &path, const char *mode) {
     return open(path.c_str(), mode);
-}
-
-std::unique_ptr<Filesystem::File> Filesystem::Filesystem::openPtr(const String &path, const char *mode) {
-    return openPtr(path.c_str(), mode);
 }
 
 Filesystem::File Filesystem::Filesystem::open(const char *path, const char *mode) {
@@ -77,6 +73,10 @@ Filesystem::File Filesystem::Filesystem::open(const char *path, const char *mode
     ::Filesystem::File f(_impl->open(path, om, am), this);
     f.setTimeCallback(_timeCallback);
     return f;
+}
+
+std::unique_ptr<Filesystem::File> Filesystem::Filesystem::openPtr(const String &path, const char *mode) {
+    return openPtr(path.c_str(), mode);
 }
 
 std::unique_ptr<Filesystem::File> Filesystem::Filesystem::openPtr(const char *path, const char *mode) {
