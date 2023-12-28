@@ -24,9 +24,9 @@ cd ~
 git clone ...
 ```
 
-### Display firmware
+### IMONK Display firmware
 
-Required only for the first time you need to flash the firmware manually. 
+> For the first time only it is required to flash the firmware manually. 
 
 * Connect display via usb-c
 * Enter the cloned copy of repository
@@ -37,8 +37,12 @@ Required only for the first time you need to flash the firmware manually.
     pio run -e release -t upload
     ```
 
-## Installation
-### Extensions 
+### Assembly
+* connect wires correctly to display
+* pull trough SB Body
+* connect wires correctly to controller/header
+
+### Extensions
 
 For proper operation IMONK needs Klipper and Monraker extensions
 
@@ -54,35 +58,109 @@ ln -s ./moonraker/imonk ~/moonraker/moonraker/components/
 ```
 
 #### Klipper configuration
+
+**Main configuration** block tells Klipper ho to connect to the display, will vary depending on your board. 
 ```ini
 [imonk]
 cs_pin: gpio1
 spi_bus: spi0a
 ```
+  
 
-##### Images
+**Image configuration**
+> Currently only PNG images are supported
 ```ini
-[imonk image face2.png]
-path: ~/face.png
+[imonk image smily-face]
+path: ~/smily-face.png
 ```
+_Can appear multiple times, each section defines one image that can be identified by name provided in section brackets. Images are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
-##### Scenes
+
+**Scene configuration**
 ```ini
-[imonk scene test]
-background: CCCCCC
+[imonk scene test-gauge]
+background: 333333
 widgets: [
     {
-      "id": "progress",
       "type": "gauge",
       "x": 120,
       "y": 120,
+      "id": "progress",
       "r-end": 80,
       "r-start": 60,
       "color": "FF0000",
+      "value": 10,
       "background": "000000",
-      "value": 10
+      "rotation"
+      "arc"
+    }
+  ]
+[imonk scene test-text]
+background: 333333
+widgets: [
+    {
+        "type": "string",
+        "x": 120,
+        "y": 120,
+        "id": "text",
+        "color": "FF0000",
+        "value": "Klipper Test Text"
+        "align"
+        "font"
+    }
+  ]
+[imonk scene test-images]
+background: 333333
+widgets: [
+    {
+        "type": "image",
+        "x": 70,
+        "y": 50,
+        "name": "smily-face" # same as in [imonk image ...] section 
+    },
+    {
+         "type": "string",
+         "x": 120,
+         "y": 120,
+         "id": "text",
+         "color": "FF0000",
+         "value": "Klipper Test Text"
+         "align"
+         "font"
+    },
+    {
+        "type": "image",
+        "x": 70,
+        "y": 140,
+        "name": "smily-face" # same as in [imonk image ...] section
     }
   ]
 ```
+_Can appear multiple times, each section defines one scene that can be identified by name provided in section brackets. Scenes are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
-### Commands
+#### Klipper commands
+Checking
+
+
+GCode Macro
+```jinja
+{% set stage_id = printer.imonk.stage('test-images') %}
+```
+```jinja
+{% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
+```
+```jinja
+{% set stage_id = printer.imonk.set_view('test-images', {'text': 'Value to display'}) %}
+```
+
+
+Testing setup
+```ini
+[gcode_macro IMONK_TEST_IMAGES]
+gcode:
+    {% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
+    
+    {% if not is_current %}
+        IMONK_COMMIT_SCENE SID={stage_id}
+    {% endif %}
+```
