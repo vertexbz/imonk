@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+import sys, os
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..', 'klipper'))
+
 import json
 import os.path
 import re
@@ -5,9 +9,9 @@ import sys
 from ast import literal_eval
 from dataclasses import Field as DCField, MISSING
 from difflib import ndiff
-from config.widget import WIDGETS
-from config.field.base import BaseField
-from config.types import Color, Font, Align
+from imonk.resource.view.config.widget import WIDGETS
+from imonk.resource.view.config.field.base import BaseField
+from imonk.resource.view.config.types import Color, Font, Align
 
 
 class Field:
@@ -75,7 +79,7 @@ def get_fields(cls):
 
 def factory_lines_per_type():
     per_type = {}
-    with open(os.path.join(os.path.dirname(__file__), '../../src/Widget/factory.hpp')) as f:
+    with open(os.path.join(os.path.dirname(__file__), '..', 'src', 'Widget', 'factory.hpp')) as f:
         lines = f.readlines()
         s = False
 

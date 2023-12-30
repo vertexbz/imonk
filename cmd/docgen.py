@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+import sys, os
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..', 'klipper'))
+
 from dataclasses import Field as DCField, MISSING
-from config import View
-from config.widget import WIDGETS
-from config.field.base import BaseField
+from imonk.resource.view.config import View
+from imonk.resource.view.config.widget import WIDGETS
+from imonk.resource.view.config.field.base import BaseField
 
 
 class Field:

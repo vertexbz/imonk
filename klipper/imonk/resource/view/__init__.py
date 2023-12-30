@@ -2,14 +2,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from ast import literal_eval
 from json import dumps as to_json
-from configfile import error as ConfigError
+from ...klipper import ConfigError
 from ...spi.crc import crc16_quick
 from .config import View as ViewConfig
 from .config.widget.image import ImageWidget
 from .slot import Slot
 
 if TYPE_CHECKING:
-    from configfile import ConfigWrapper
+    from ...klipper import ConfigWrapper
 
 
 class IMONKResourceView:

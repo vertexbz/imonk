@@ -3,17 +3,17 @@ from functools import cached_property
 from typing import Optional, Union
 from typing import TYPE_CHECKING
 from time import sleep
-from extras import bus
 from .crc import crc16_quick, crc16_step
 from .error import CRCError, CommunicationError, UnexpectedResponse, ByteCounter, StopReading
 from .const import CRCOnlyLength
 
 if TYPE_CHECKING:
     from gcode import GCodeDispatch
+    from ..klipper import MCU_SPI
 
 
 class SPITransaction:
-    def __init__(self, spi: bus.MCU_SPI):
+    def __init__(self, spi: MCU_SPI):
         self._spi = spi
 
     @cached_property

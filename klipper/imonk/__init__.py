@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from .imonk import IMONK
 
 if TYPE_CHECKING:
-    from configfile import ConfigWrapper
+    from .klipper import ConfigWrapper
 
 
 def load_config(config: ConfigWrapper):

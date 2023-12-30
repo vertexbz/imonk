@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from os.path import expanduser, exists, getmtime
-from configfile import error as ConfigError
+from ..klipper import ConfigError
 from ..spi.crc import crc16_step
 
 if TYPE_CHECKING:
-    from configfile import ConfigWrapper
+    from ..klipper import ConfigWrapper
 
 
 class IMONKResourceImage:

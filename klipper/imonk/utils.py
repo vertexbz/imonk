@@ -2,11 +2,11 @@ from __future__ import annotations
 from typing import Callable
 from typing import TYPE_CHECKING
 import logging
-from gcode import CommandError
+from .klipper import CommandError
 from .spi.error import CommunicationError
 
 if TYPE_CHECKING:
-    from gcode import GCodeCommand
+    from .klipper import GCodeCommand
 
 
 def with_error_handler(fn: Callable[[GCodeCommand], None]):

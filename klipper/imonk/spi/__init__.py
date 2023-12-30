@@ -2,7 +2,7 @@ from __future__ import annotations
 from time import sleep
 from typing import TYPE_CHECKING
 from typing import Optional
-from extras import bus
+from ..klipper import MCU_SPI
 from .transaction import SPITransaction
 
 if TYPE_CHECKING:
@@ -24,7 +24,7 @@ class SPI:
         self._cs: MCU_digital_out = ppins.setup_pin('digital_out', cs_pin)
         self._cs.setup_max_duration(0)
         self._cs.setup_start_value(1., 1.)
-        self._spi = bus.MCU_SPI(self._cs.get_mcu(), spi_bus, None, 3, speed)
+        self._spi = MCU_SPI(self._cs.get_mcu(), spi_bus, None, 3, speed)
 
     def _switch_cs(self, active: bool):
         print_time = self._cs.get_mcu().estimated_print_time(self.printer.reactor.monotonic())

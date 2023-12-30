@@ -1,6 +1,6 @@
 from __future__ import annotations
-import os.path
 from re import match as rematch
+from ....generated.font import KNOWN_FONTS
 
 
 class Color(str):
@@ -25,24 +25,9 @@ class Align(str):
 
 
 class Font(str):
-    @classmethod
-    def __get_fonts__(cls):
-        key = '__known_fonts__'
-        if not hasattr(cls, key):
-            result = []
-            with open(os.path.join(os.path.dirname(__file__), '../../../../../src/Display/Util.cpp'), 'r') as f:
-                for line in f.readlines():
-                    line = line.strip()
-                    if line.startswith('fnt_if'):
-                        result.append(line.split('"')[1])
-            result = tuple(result)
-            setattr(cls, key, result)
-            return result
-        return getattr(cls, key)
-
     def __new__(cls, value: str):
         font = value.lower()
-        if font not in cls.__get_fonts__():
+        if font not in KNOWN_FONTS:
             raise ValueError(f'Unknown font {value}')
 
         return super().__new__(cls, font)
