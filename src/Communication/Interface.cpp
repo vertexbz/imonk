@@ -47,7 +47,7 @@ Communication::Interface::Interface(Filesystem::Filesystem *fs, StageManager *st
 
     addCommand(_upload_view = new CRCFileUploadCommand(0x21, fs, Filesystem::Filesystem::_VIEWS_));
     _upload_view->callback([this](const Filesystem::UploadFile *file) {
-        _new_view = file->name(); // todo fix it, does not work
+        _new_view = file->basename();
     });
     addCommand(new DirectoryManifest(0x22, fs, Filesystem::Filesystem::_VIEWS));
 

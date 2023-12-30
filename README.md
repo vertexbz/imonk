@@ -79,20 +79,20 @@ _Can appear multiple times, each section defines one image that can be identifie
 **View configuration**
 ```ini
 [imonk view test-gauge]
-background: 333333
-widgets: [
+background: 333333  # View background color
+widgets: [  # List of widgets to render on the view
     {
-      "type": "gauge",
-      "x": 120,
-      "y": 120,
-      "id": "progress",
-      "r-end": 80,
-      "r-start": 60,
-      "color": "FF0000",
-      "value": 10,
-      "background": "000000",
-      "rotation"
-      "arc"
+        "type": "gauge",
+        "x": 120,  # X Coordinate of the widget
+        "y": 120,  # Y Coordinate of the widget
+        "id": "progress",  # Handle to set gauge value
+        "r-end": 80,  # End radius of the gauge
+        "r-start": 60,  # Start radius of the gauge
+        "color": "FF0000",  # Gauge fill color
+        "background": "000000",  # (optional) Gauge background color (default: "000000") 
+        "value": 0,  # (optional) Gauge value, i.e. how much of the gauge should be filled (default: 0) 
+        "rotation": 90.0,  # (optional) Gauge widget rotation (in degrees) (default: 90.0) 
+        "arc": 260.0  # (optional) How much of the circle should be used as gauge (in degrees) (default: 260.0) 
     }
   ]
 [imonk view test-text]
@@ -100,13 +100,13 @@ background: 333333
 widgets: [
     {
         "type": "string",
-        "x": 120,
-        "y": 120,
-        "id": "text",
-        "color": "FF0000",
-        "value": "Klipper Test Text"
-        "align"
-        "font"
+        "x": 120,  # X Coordinate of the widget
+        "y": 120,  # Y Coordinate of the widget
+        "id": "text1",  # Handle to set widgets text
+        "color": "FFFFFF",  # Text color
+        "value": "Testy text",  # (optional) Text to display on screen (default: "") 
+        "font": "roboto24",  # (optional) Font to use to render the text (default: "font0") 
+        "align": "left"  # (optional) Text alignment in relation to provided coordinates (default: "center") 
     }
   ]
 [imonk view test-images]
@@ -114,9 +114,9 @@ background: 333333
 widgets: [
     {
         "type": "image",
-        "x": 70,
-        "y": 50,
-        "name": "smily-face" # same as in [imonk image ...] section 
+        "x": 120,  # X Coordinate of the widget
+        "y": 120,  # Y Coordinate of the widget
+        "name": "smily-face"  # Name of the image to display - same as in [imonk image ...] section
     },
     {
          "type": "string",
@@ -125,14 +125,12 @@ widgets: [
          "id": "text",
          "color": "FF0000",
          "value": "Klipper Test Text"
-         "align"
-         "font"
     },
     {
         "type": "image",
         "x": 70,
         "y": 140,
-        "name": "smily-face" # same as in [imonk image ...] section
+        "name": "smily-face"
     }
   ]
 ```

@@ -25,9 +25,9 @@ inline std::unique_ptr<Widget::BaseWidget> build_widget(Filesystem::Filesystem *
             obj["x"].as<Display::Unit>(), obj["y"].as<Display::Unit>(),
             obj["r-end"].as<Display::Unit>(), obj["r-end"].as<Display::Unit>() - obj["r-start"].as<Display::Unit>(),
             Display::Util::strtorgb(obj["color"]),
-            Display::Util::strtorgb(obj["background"] | "000000"),
-            obj["rotation"] | 90,
-            obj["arc"] | 260
+            Display::Util::strtorgb(obj["background"]),
+            obj["rotation"] | 90.0,
+            obj["arc"] | 260.0
         );
         gauge->setPercent(obj["value"].as<uint8_t>());
         return std::move(gauge);

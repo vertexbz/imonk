@@ -38,3 +38,13 @@ void Filesystem::UploadFile::setCRC(Lib::CRC::CRC16 checksum) {
 void Filesystem::UploadFile::completed() {
     _completed = true;
 }
+
+const char *Filesystem::UploadFile::path() const {
+    return _path;
+}
+
+const char *Filesystem::UploadFile::basename() const {
+    const char *p = _path;
+    const char *slash = strrchr(p, '/');
+    return (slash && slash[1]) ? slash + 1 : p;
+}

@@ -18,5 +18,9 @@ public:
     void setCRC(Lib::CRC::CRC16 checksum) override;
 
     void completed() override;
+
+    [[nodiscard]] const char *path() const;
+
+    [[nodiscard]] const char *basename() const;
 };
 }

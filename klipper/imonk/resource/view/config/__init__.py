@@ -11,5 +11,5 @@ if TYPE_CHECKING:
 
 @dataclass
 class View(Base):
-    background: str = ColorField()
-    widgets: list[Widget] = WidgetsField()
+    background: str = ColorField(metadata={'example': '333333', 'description': 'View background color'})
+    widgets: list[Widget] = WidgetsField(metadata={'description': 'List of widgets to render on the view'})

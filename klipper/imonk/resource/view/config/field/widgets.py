@@ -1,40 +1,28 @@
 from __future__ import annotations
-from typing import Union
+
+from typing import Optional
+
+from .base import BaseField
 from ..widget import build_widget
 from ..widget.base import Widget
 
 
-class WidgetsField:
-    class DEFAULT: ...
+class WidgetsField(BaseField):
+    def __init__(self, *, metadata: Optional[dict] = None):
+        super().__init__(list, default_factory=list, metadata=metadata)
 
-    def __init__(self, *, default=DEFAULT, default_factory=list):
-        self._default_factory = default_factory
-        self._default = default
-
-    def __set_name__(self, owner, name):
-        self._name = "_" + name
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self._default
-
-        return getattr(obj, self._name, self._default)
-
-    def __set__(self, obj, value: Union[list[dict], list[Widget]]):
-        if value == self.DEFAULT:
-            value = self._default_factory()
-
+    def _normalize(self, value):
         if not isinstance(value, list):
             raise ValueError('List expected')
 
         if all(map(lambda w: isinstance(w, Widget), value)):
-            return setattr(obj, self._name, value)
+            return value
 
-        return setattr(obj, self._name, list(map(lambda w: self.build_widget(w), value)))
+        return list(map(self.build_widget, value))
 
     def build_widget(self, data: dict) -> Widget:
         if not isinstance(data, dict):
             raise ValueError('Object expected')
 
         kind = data.pop('type')
-        return build_widget(kind, {k.replace('-', '_'): v for k, v in data.items()})
+        return build_widget(kind, data)

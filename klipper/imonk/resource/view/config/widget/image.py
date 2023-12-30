@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from .base import Widget
 
 
@@ -7,4 +7,4 @@ from .base import Widget
 class ImageWidget(Widget):
     KIND = "image"
 
-    name: str = ""
+    name: str = field(metadata={'example': 'smily-face', 'description': 'Name of the image to display - same as in [imonk image ...] section'})

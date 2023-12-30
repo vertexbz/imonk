@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 from ..base import Base
 
@@ -8,8 +8,8 @@ from ..base import Base
 class Widget(Base):
     KIND = ""
 
-    x: int
-    y: int
+    x: int = field(metadata={'example': 120, 'description': 'X Coordinate of the widget'})
+    y: int = field(metadata={'example': 120, 'description': 'Y Coordinate of the widget'})
 
     def _fields(self):
         yield 'type', type(self).KIND

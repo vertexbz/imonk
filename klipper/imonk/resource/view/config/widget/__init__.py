@@ -8,15 +8,15 @@ if TYPE_CHECKING:
     from .base import Widget
 
 
-WIDGETS = [GaugeWidget, ImageWidget, StringWidget]
+WIDGETS = (GaugeWidget, ImageWidget, StringWidget)
 
 
 def build_widget(kind: str, data: dict) -> Widget:
     for WidgetClass in WIDGETS:
         if WidgetClass.KIND == kind:
-            return WidgetClass(**data)
+            return WidgetClass(**WidgetClass.sanitize(data))
 
     raise ValueError(f'Unknown widget type {kind}')
 
 
-__all__ = ['build_widget']
+__all__ = ['build_widget', 'WIDGETS']

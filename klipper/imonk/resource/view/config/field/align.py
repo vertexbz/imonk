@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import Optional
 from .base import BaseField
-from ..types import Color
+from ..types import Align
 
 
-class ColorField(BaseField):
+class AlignField(BaseField):
     def __init__(self, *, default=BaseField.DEFAULT, metadata: Optional[dict] = None):
-        super().__init__(Color, default=default, metadata=metadata)
+        super().__init__(Align, default=default, metadata=metadata)
 
     def _normalize(self, value):
-        return Color(value)
+        return Align(value)
