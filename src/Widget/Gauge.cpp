@@ -33,7 +33,7 @@ Widget::Gauge::Gauge(Display::Unit x, Display::Unit y, Display::Unit radius, Dis
 }
 
 std::unique_ptr<Widget::BaseWidget> Widget::Gauge::clone() {
-    auto gauge = std::make_unique<Gauge>(_x, _y, _r, _thickness, _color, _rotation, _gaugeArc);
+    auto gauge = std::make_unique<Gauge>(_x, _y, _r, _thickness, _color, _background, _rotation, _gaugeArc);
     gauge->setPercent(_percentage);
     return std::move(gauge);
 }

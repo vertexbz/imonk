@@ -84,7 +84,7 @@ spi_bus: spi0a
 > Currently only PNG images are supported
 ```ini
 [imonk image smily-face]
-path: ~/smily-face.png
+path: ~/imonk/doc/smily-face.png
 ```
 _Can appear multiple times, each section defines one image that can be identified by name provided in section brackets. Images are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
@@ -127,8 +127,8 @@ background: 333333
 widgets: [
     {
         "type": "image",
-        "x": 120,  # X Coordinate of the widget
-        "y": 120,  # Y Coordinate of the widget
+        "x": 70,  # X Coordinate of the widget
+        "y": 60,  # Y Coordinate of the widget
         "name": "smily-face"  # Name of the image to display - same as in [imonk image ...] section
     },
     {
@@ -216,6 +216,55 @@ the extension provides macro helpers for stage/set commands that output `stage_i
     "info": "Firmware update continues on the device"
   }
   ```
+
+#### Test macros
+
+Test gcode macros using above configuration examples
+
+```jinja
+[gcode_macro IMONK_TEST_GAUGE]
+gcode:
+  {% set progress = params.PROGRESS|default(0)|int %}
+  {% set stage_id = printer.imonk.set_view('test-gauge', {'progress': progress}) %}
+  # {action_respond_info('test-gauge sid: {} {}%'.format(stage_id, progress))}
+
+[gcode_macro IMONK_TEST_IMAGES]
+gcode:
+  {% set stage_id = printer.imonk.set_view('test-images', {'text': 'Text between images'}) %}
+  # {action_respond_info('test-images sid: {}'.format(stage_id))}
+
+
+[gcode_macro IMONK_TEST_TEXT]
+gcode:
+  {% set stage_id = printer.imonk.set_view('test-text', {'text1': 'aaa'}) %}
+  G4 P3000
+  IMONK_SET_VALUE SID={stage_id} SLOT=text1 VALUE=bbb
+  G4 P3000
+  IMONK_SET_VALUE SID={stage_id} SLOT=text1 VALUE=ccc
+  G4 P3000
+  # {action_respond_info('test-text sid: {}'.format(stage_id))}
+  
+
+[gcode_macro IMONK_TEST]
+gcode:
+  {% for i in range(101) %}
+    IMONK_TEST_GAUGE PROGRESS={i}
+  {% endfor %}
+
+  IMONK_TEST_IMAGES
+  G4 P5000
+
+  IMONK_TEST_TEXT
+  
+  {% for i in range(101) %}
+    IMONK_TEST_GAUGE PROGRESS={100 - i}
+  {% endfor %}
+
+```
+
+Result
+
+![preview.gif](doc%2Fpreview.gif)
 
 
 ## Motivation
