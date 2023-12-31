@@ -1,0 +1,11 @@
+{
+  "name": "Quick CRC 16",
+  "version": "0.1.0",
+  "description": "Provides Quick CRC 16 implementation",
+  "keywords": "crc",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "frameworks": "*",
+  "platforms": "*"
+}

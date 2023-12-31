@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vertaro/spi/slave/contract/filesytem.hpp>
+#include <lib/spi/slave/contract/filesytem.hpp>
 #include <lgfx/v1/misc/DataWrapper.hpp>
-#include <vertaro/crc.hpp>
+#include <lib/crc.hpp>
 #include "Impl/File.hpp"
 
 namespace Filesystem {

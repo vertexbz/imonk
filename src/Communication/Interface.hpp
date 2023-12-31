@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vertaro/spi/slave.impl.hpp>
+#include <lib/spi/slave.impl.hpp>
 
 class StageManager;
 

@@ -1,0 +1,12 @@
+{
+  "name": "SPI Slave",
+  "version": "0.1.0",
+  "description": "Provides C++ abstraction over SPI Slave",
+  "keywords": "spi, avr, spislave, spi-slave, slave",
+  "license": "MIT",
+  "dependencies": {
+    "Quick CRC 16": "*"
+  },
+  "frameworks": "*",
+  "platforms": "*"
+}

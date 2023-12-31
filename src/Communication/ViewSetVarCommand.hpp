@@ -1,7 +1,7 @@
 #pragma once
 
 #include <StageManager.hpp>
-#include <vertaro/spi/slave.impl.hpp>
+#include <lib/spi/slave.impl.hpp>
 #include "../Widget/_widget_.hpp"
 
 namespace View {
