@@ -22,7 +22,7 @@ If you kno' me, you had a chance to say halo ;)
 This repository contains all bits and pieces required to bring IMONK to life, to make things easier clone it to your host machine. 
 ```
 cd ~
-git clone ...
+git clone https://github.com/vertexbz/imonk.git
 ```
 
 ### IMONK Display firmware
@@ -34,13 +34,14 @@ git clone ...
 * Enter the cloned copy of repository
 * Build & flash screen module firmware 
     ```
-    cd ~/...
+    cd ~/imonk
     pio run -e release -t upload
     ```
 
 ### Assembly
 * Minimal wiring with RPi Pico's main SPI
-![connections.png](doc%2Fconnections.png)
+
+  ![connections.png](doc%2Fconnections.png)
 
 
 ### Extensions
@@ -48,7 +49,7 @@ git clone ...
 For proper operation IMONK needs Klipper and Monraker extensions
 
 ```
-cd ~/...
+cd ~/imonk
 ln -s ./klipper/imonk ~/klipper/klippy/extras/
 ln -s ./moonraker/imonk ~/moonraker/moonraker/components/
 ```
