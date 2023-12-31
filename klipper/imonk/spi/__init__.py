@@ -18,13 +18,22 @@ class SPI:
         ppins: PrinterPins = self.printer.lookup_object('pins')
 
         cs_pin = config.get('cs_pin')
-        spi_bus = config.get('spi_bus')
-        speed = config.getint('spi_speed', 300000, minval=100000)
-
         self._cs: MCU_digital_out = ppins.setup_pin('digital_out', cs_pin)
         self._cs.setup_max_duration(0)
         self._cs.setup_start_value(1., 1.)
-        self._spi = MCU_SPI(self._cs.get_mcu(), spi_bus, None, 3, speed)
+
+        sw_pins = None
+        spi_bus = config.get('spi_bus', None)
+        if spi_bus is None:
+            sw_pin_names = [f'spi_software_{name}_pin' for name in ['miso', 'mosi', 'sclk']]
+            sw_pin_params = [ppins.lookup_pin(config.get(name), share_type=name) for name in sw_pin_names]
+            for pin_params in sw_pin_params:
+                if pin_params['chip'] != self._cs.get_mcu():
+                    raise ppins.error(f"{config.get_name()}: spi pins must be on same mcu" )
+            sw_pins = tuple([pin_params['pin'] for pin_params in sw_pin_params])
+
+        speed = config.getint('spi_speed', 300000, minval=100000)
+        self._spi = MCU_SPI(self._cs.get_mcu(), spi_bus, None, 3, speed, sw_pins)
 
     def _switch_cs(self, active: bool):
         print_time = self._cs.get_mcu().estimated_print_time(self.printer.reactor.monotonic())

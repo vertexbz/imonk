@@ -3,22 +3,23 @@
 If you kno' me, you had a chance to say halo ;)
 
 * No Wi-Fi required
-* Full control
-* Klipper integration
+* Full control via GCode commands
+* Customizable views
+* Custom images support
 
 ## BOM
 
 ### Printed parts
-* [KNOMI v2 StealthBurner body & mount plate](https://github.com/bigtreetech/KNOMI/tree/master/KNOMI2/STL) - mount plate will be modified
+* [KNOMI v2 StealthBurner body & mount plate](https://github.com/bigtreetech/KNOMI/tree/master/KNOMI2/STL) - mount plate to be modified, original kinda fits
 
 ### SPI Version
 * https://www.waveshare.com/rp2040-lcd-1.28.htm
-* some wires
+* wires, connectors  (jst, gold-pin), probably soldering iron
 
 
 ## Software setup
 
-This repository contains all required bits and pieces required to bring IMONK to life, to make things easier clone it to your host machine. 
+This repository contains all bits and pieces required to bring IMONK to life, to make things easier clone it to your host machine. 
 ```
 cd ~
 git clone ...
@@ -28,9 +29,9 @@ git clone ...
 
 > For the first time only it is required to flash the firmware manually. 
 
+* Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/methods/installer-script.html#super-quick-macos-linux)
 * Connect display via usb-c
 * Enter the cloned copy of repository
-* Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/methods/installer-script.html#super-quick-macos-linux)
 * Build & flash screen module firmware 
     ```
     cd ~/...
@@ -38,9 +39,9 @@ git clone ...
     ```
 
 ### Assembly
-* connect wires correctly to display
-* pull trough SB Body
-* connect wires correctly to controller/header
+* Minimal wiring with RPi Pico's main SPI
+![connections.png](doc%2Fconnections.png)
+
 
 ### Extensions
 
@@ -59,7 +60,18 @@ ln -s ./moonraker/imonk ~/moonraker/moonraker/components/
 
 #### Klipper configuration
 
-**Main configuration** block tells Klipper ho to connect to the display, will vary depending on your board. 
+**Main configuration** block tells Klipper how to connect to the display, will vary depending on your board. 
+
+* SB2240/2209 board
+```ini
+[imonk]
+cs_pin: PA10
+spi_software_sclk_pin: PB10
+spi_software_mosi_pin: PB11
+spi_software_miso_pin: PB2
+```
+
+* RPi Pico main SPI
 ```ini
 [imonk]
 cs_pin: gpio1
@@ -137,8 +149,6 @@ widgets: [
 _Can appear multiple times, each section defines one view that can be identified by name provided in section brackets. Views are synchronized to device on Klipper start (or with g-code commands) to save on communication during print and operation._
 
 #### Klipper commands
-Checking
-
 
 GCode Macro
 ```jinja
@@ -162,3 +172,9 @@ gcode:
         IMONK_COMMIT_VIEW SID={stage_id}
     {% endif %}
 ```
+
+#### Moonraker API endpoints
+
+## Motivation
+
+This project came to live mainly to prove that additional display can be fully configured and controlled directly via klipper without wi-fi connection, but I'm happy to further maintain and develop the project if it gets interest
