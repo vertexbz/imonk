@@ -150,30 +150,72 @@ _Can appear multiple times, each section defines one view that can be identified
 
 #### Klipper commands
 
-GCode Macro
-```jinja
-{% set stage_id = printer.imonk.stage('test-images') %}
-```
-```jinja
-{% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
-```
-```jinja
-{% set stage_id = printer.imonk.set_view('test-images', {'text': 'Value to display'}) %}
-```
+* **Firmware**
+  * `IMONK_FIRMWARE_VERSION` - Prints current IMONK firmware version
+  * `IMONK_FIRMWARE_UPDATE` - Update firmware from file, takes `PATH` argument - path to .bin firmware file
+* **Views**
+  * `IMONK_STAGE_VIEW` - Stages View with provided `NAME` for variables input, to display staged view use IMONK_COMMIT_VIEW
+  * `IMONK_STAGE_VIEW_IF_NEEDED` - Stages View with provided `NAME` for variables input, only if not already staged or current
+  * `IMONK_SET_VALUE` - Set view widget value, requires `SID` of current or staged view, `SLOT` widget identifier input and `VALUE` to set. When called with current view SID, changes are applied immediately
+  * `IMONK_COMMIT_VIEW` - Commits (displays) prepared IMONK View
+  * `IMONK_ABORT_VIEW` - Discards staged view and entered values
+  * `IMONK_SET_VIEW` - Stages View with provided `NAME` (if not staged or current) with provided `SLOT_<id>=<value>` values (previous or defaults used when omitted) and (if not current) commits the view automatically
+* **Misc**
+  * `IMONK_REBOOT` - Reboots the display
+  * `IMONK_RELOAD_CONFIG` - Reloads IMONK configuration from files
+  * `IMONK_LOAD_DEVICE_STATE` - Reloads IMONK device state
+  * `IMONK_SYNCHRONIZE` - Synchronizes IMONK device state with configuration
 
+#### Klipper GCode macro helpers
 
-Testing setup
-```ini
-[gcode_macro IMONK_TEST_IMAGES]
-gcode:
-    {% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
-    
-    {% if not is_current %}
-        IMONK_COMMIT_VIEW SID={stage_id}
-    {% endif %}
-```
+Due to macro execution flow, using `IMONK_STAGE_VIEW`, `IMONK_STAGE_VIEW_IF_NEEDED`, `IMONK_SET_VIEW` and checking IMONK extension state may be inconvenient,
+the extension provides macro helpers for stage/set commands that output `stage_id` for convenience.
+
+* Example `stage` call
+  ```jinja
+  {% set stage_id = printer.imonk.stage('test-images') %}
+  ```
+
+* `stage_if_needed` additionally returns information whether the view is staged or current
+  ```jinja
+  {% set stage_id, is_current = printer.imonk.stage_if_needed('test-images') %}
+  ```
+
+* The `set_view` takes dictionary of values to set as second parameter
+  ```jinja
+  {% set stage_id = printer.imonk.set_view('test-images', {'text': 'Value to display'}) %}
+  ```
+
 
 #### Moonraker API endpoints
+
+* **Check version**
+  `[GET] /machine/imonk/version`
+
+  **Response**
+  ```json
+  {
+    "result": {
+      "version": {
+        "major": 0,
+        "minor": 0,
+        "micro": 1
+      }
+    }
+  }
+  ```
+
+
+* **Update firmware** 
+  `[POST] /machine/imonk/firmware`, firmware provided as `file` param via multipart/form-data
+
+  **Response**
+  ```json
+  {
+    "info": "Firmware update continues on the device"
+  }
+  ```
+
 
 ## Motivation
 
