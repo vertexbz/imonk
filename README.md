@@ -29,8 +29,14 @@ git clone https://github.com/vertexbz/imonk.git
 
 > For the first time only it is required to flash the firmware manually. 
 
+#### From binary build 
+* Download `firmware.uf2` from latest [release](https://github.com/vertexbz/imonk/releases)
+* Connect display via usb-c while holding BOOT button
+* Upload the firmware to the device 
+
+#### Manual build
 * Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/methods/installer-script.html#super-quick-macos-linux)
-* Connect display via usb-c
+* Connect display via usb-c while holding BOOT button
 * Enter the cloned copy of repository
 * Build & flash screen module firmware 
     ```
